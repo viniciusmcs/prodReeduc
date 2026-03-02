@@ -126,7 +126,7 @@
 }
 
 .primary-button--no-bg {
-    background: transparent;
+    background: none;
     color: var(--primary);
     border: 1px solid var(--primary);
 }
