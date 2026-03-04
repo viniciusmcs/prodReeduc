@@ -1,206 +1,144 @@
+{% extends "core/base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Ver Familiar</title>
-    <link rel="stylesheet" href="{% static 'core/home.css' %}" />
-    <link rel="stylesheet" href="{% static 'core/cadastro.css' %}" />
-    <link rel="stylesheet" href="{% static 'core/cadastro_perfil.css' %}" />
-</head>
-<body>
-    <div class="layout">
-        <aside class="sidebar">
-            <a class="brand" href="/home/">ESPI</a>
-            <button class="new-button" id="novoButton">
-                <span class="icon">+</span>
-                <span>Novo</span>
-            </button>
-            <div class="new-menu" id="novoMenu">
-                <a href="/home/cadastro/adicionar">Cadastro</a>
-                <a href="/atendimentos/adicionar">Atendimento</a>
-                <a href="/agendamentos/adicionar">Agendamento</a>
-            </div>
-            <nav class="menu">
-                <div class="menu-group">
-                    <button class="menu__item menu__item--toggle" type="button" data-target="cadastros-submenu">
-                        Cadastros
-                        <span class="caret">▾</span>
-                    </button>
-                    <div class="submenu" id="cadastros-submenu">
-                        <a class="submenu__item" href="/home/cadastros">Todos</a>
-                        <a class="submenu__item" href="/home/cadastros/ativos">Ativos</a>
-                        <a class="submenu__item" href="/home/cadastros/arquivados">Arquivados</a>
-                        <a class="submenu__item" href="/home/cadastros/familiares">Familiares</a>
-                    </div>
-                </div>
-                <a class="menu__item" href="/agendamentos">Agendamentos</a>
-                <a class="menu__item" href="/home/atendimentos">Atendimentos</a>
-                <a class="menu__item" href="/familiares/adicionar">Familiar</a>
-                <a class="menu__item" href="/atividades/minhasatividades">Atividades</a>
-            </nav>
-        </aside>
 
-        <div class="main">
-            <header class="topbar">
-                <div class="search">
-                    <input type="text" placeholder="buscar..." />
-                    <span class="search__icon">🔍</span>
-                </div>
-                <div class="user-menu" id="userMenu">
-                    <div class="avatar" id="userMenuToggle">👤</div>
-                    <div class="user-menu__dropdown" id="userMenuDropdown">
-                        <div class="user-menu__title">Usuário</div>
-                        <a href="/usuario/perfil/{{ request.user.username }}">Meu Perfil</a>
-                        <a href="/atividades/minhasatividades">Minhas Atividades</a>
-                        <a href="/sair">Sair</a>
-                        {% if request.user.is_staff %}
-                        <div class="user-menu__title">Admin</div>
-                        <a href="/administrar/usuarios">Gerenciar Usuários</a>
-                        <a href="/administrar/adicionarUsuario">Adicionar Usuário</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </header>
+{% block title %}Ver Familiar{% endblock %}
+{% block nav_cadastros %}active{% endblock %}
 
-            <section class="content">
-                {% csrf_token %}
-                <div class="perfil-header">
-                    <div>
-                        <h1>{{ familiar.nome }}</h1>
-                        <p>Vínculo: {{ familiar.parentesco|default:"-" }} - {{ familiar.cadastro.nome }}</p>
-                    </div>
-                </div>
+{% block content %}
+{% csrf_token %}
+<div class="perfil-header">
+    <div>
+        <h1>{{ familiar.nome }}</h1>
+        <p>Vínculo: {{ familiar.parentesco|default:"-" }} - {{ familiar.cadastro.nome }}</p>
+    </div>
+</div>
 
-                <div class="perfil-tabs">
-                    <a class="tab nav-link" href="/cadastro/perfil/{{ familiar.cadastro_id }}">Perfil</a>
-                    <a class="tab nav-link active" href="/cadastro/familiares/{{ familiar.cadastro_id }}">Familiares</a>
-                    <a class="tab nav-link" href="/cadastro/atendimentos/{{ familiar.cadastro_id }}">Atendimentos</a>
-                    <a class="tab nav-link" href="/cadastro/agendamentos/{{ familiar.cadastro_id }}">Agendamentos</a>
-                </div>
+<div class="perfil-tabs">
+    <a class="tab nav-link" href="/cadastro/perfil/{{ familiar.cadastro_id }}">Perfil</a>
+    <a class="tab nav-link active" href="/cadastro/familiares/{{ familiar.cadastro_id }}">Familiares</a>
+    <a class="tab nav-link" href="/cadastro/atendimentos/{{ familiar.cadastro_id }}">Atendimentos</a>
+    <a class="tab nav-link" href="/cadastro/agendamentos/{{ familiar.cadastro_id }}">Agendamentos</a>
+</div>
 
-                <section class="perfil-card">
-                    <div class="perfil-grid">
-                        <div class="foto-placeholder" id="fotoPlaceholder" title="Clique para enviar uma foto">
-                            {% if familiar.foto %}
-                                <img src="{{ familiar.foto.url }}" alt="Foto do familiar" style="width: 100%; height: 100%; object-fit: cover;">
-                            {% else %}
-                                <span>Clique para adicionar foto</span>
-                            {% endif %}
-                        </div>
-                        <input type="file" id="fotoInput" style="display: none;" accept="image/png,image/jpeg">
-                        <div class="perfil-info">
-                            <p><strong>Nome:</strong> {{ familiar.nome }}</p>
-                            <p><strong>Nome social:</strong> {{ familiar.nome_social|default:"-" }}</p>
-                            <p><strong>Data de nascimento:</strong> {{ familiar.data_nascimento|date:"d/m/Y"|default:"-" }}</p>
-                            <p><strong>Sexo biológico:</strong> {{ familiar.get_sexo_biologico_display|default:"-" }}</p>
-                            <p><strong>Identidade étnico-racial:</strong> {{ familiar.get_identidade_etnico_racial_display|default:"-" }}</p>
-                            <p><strong>Parentesco:</strong> {{ familiar.parentesco|default:"-" }}</p>
-                        </div>
-                    </div>
-
-                    <div class="perfil-sections">
-                        <div class="perfil-documentos">
-                            <h3>📞 Contato</h3>
-                            <p><strong>Bairro:</strong> {{ familiar.bairro|default:"-" }}</p>
-                            <p><strong>Telefone:</strong> {{ familiar.telefone_numero|default:"-" }}</p>
-                            <p><strong>Contato:</strong> {{ familiar.telefone_contato|default:"-" }}</p>
-                            <p><strong>Observações:</strong> {{ familiar.telefone_observacao|default:"-" }}</p>
-                            <p><strong>E-mail:</strong> {{ familiar.email_contato|default:"-" }}</p>
-                        </div>
-
-                        <div class="perfil-documentos">
-                            <h3>Documentos que Possui</h3>
-                            <div class="chip-row">
-                                {% for doc in documentos_possui %}
-                                    <span class="chip">{{ doc }}</span>
-                                {% empty %}
-                                    <span class="chip">Nenhum informado</span>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <div class="perfil-documentos">
-                            <h3>Documentos Ausentes</h3>
-                            <div class="chip-row">
-                                {% for doc in documentos_ausentes %}
-                                    <span class="chip">{{ doc }}</span>
-                                {% empty %}
-                                    <span class="chip">Nenhum informado</span>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="perfil-actions-row">
-                        <a class="primary-button" href="/cadastro/familiares/editar/{{ familiar.id }}">Editar</a>
-                        <a class="ghost-button" href="/cadastro/familiares/excluir/{{ familiar.id }}">Excluir</a>
-                        <a class="ghost-button" href="/cadastro/familiares/{{ familiar.cadastro_id }}">Voltar</a>
-                    </div>
-                </section>
-            </section>
+<section class="perfil-card">
+    <div class="perfil-grid">
+        <div class="foto-placeholder" id="fotoPlaceholder" title="Clique para enviar uma foto">
+            {% if familiar.foto %}
+                <img src="{{ familiar.foto.url }}" alt="Foto do familiar" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+                <span>Clique para adicionar foto</span>
+            {% endif %}
+        </div>
+        <input type="file" id="fotoInput" style="display: none;" accept="image/png,image/jpeg">
+        <div class="perfil-info">
+            <p><strong>Nome:</strong> {{ familiar.nome }}</p>
+            <p><strong>Nome social:</strong> {{ familiar.nome_social|default:"-" }}</p>
+            <p><strong>Data de nascimento:</strong> {{ familiar.data_nascimento|date:"d/m/Y"|default:"-" }}</p>
+            <p><strong>Sexo biológico:</strong> {{ familiar.get_sexo_biologico_display|default:"-" }}</p>
+            <p><strong>Identidade étnico-racial:</strong> {{ familiar.get_identidade_etnico_racial_display|default:"-" }}</p>
+            <p><strong>Parentesco:</strong> {{ familiar.parentesco|default:"-" }}</p>
         </div>
     </div>
-    <script>
-        const fotoInput = document.getElementById('fotoInput');
-        const fotoPlaceholder = document.getElementById('fotoPlaceholder');
-        const familiarId = window.location.pathname.split('/').slice(-1)[0];
 
-        if (fotoPlaceholder) {
-            fotoPlaceholder.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (fotoInput) {
-                    fotoInput.click();
-                }
-            });
-        }
+    <div class="perfil-sections">
+        <div class="perfil-documentos">
+            <h3>📞 Contato</h3>
+            <p><strong>Bairro:</strong> {{ familiar.bairro|default:"-" }}</p>
+            <p><strong>Telefone:</strong> {{ familiar.telefone_numero|default:"-" }}</p>
+            <p><strong>Contato:</strong> {{ familiar.telefone_contato|default:"-" }}</p>
+            <p><strong>Observações:</strong> {{ familiar.telefone_observacao|default:"-" }}</p>
+            <p><strong>E-mail:</strong> {{ familiar.email_contato|default:"-" }}</p>
+        </div>
 
-        if (fotoInput) {
-            fotoInput.addEventListener('change', async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
+        <div class="perfil-documentos">
+            <h3>Documentos que Possui</h3>
+            <div class="chip-row">
+                {% for doc in documentos_possui %}
+                    <span class="chip">{{ doc }}</span>
+                {% empty %}
+                    <span class="chip">Nenhum informado</span>
+                {% endfor %}
+            </div>
+        </div>
 
-                const validTypes = ['image/png', 'image/jpeg'];
-                if (!validTypes.includes(file.type)) {
-                    alert('Por favor, selecione apenas arquivos PNG ou JPEG');
-                    fotoInput.value = '';
-                    return;
-                }
+        <div class="perfil-documentos">
+            <h3>Documentos Ausentes</h3>
+            <div class="chip-row">
+                {% for doc in documentos_ausentes %}
+                    <span class="chip">{{ doc }}</span>
+                {% empty %}
+                    <span class="chip">Nenhum informado</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 
-                const formData = new FormData();
-                formData.append('foto', file);
+    <div class="perfil-actions-row">
+        <a class="primary-button" href="/cadastro/familiares/editar/{{ familiar.id }}">Editar</a>
+        <a class="ghost-button" href="/cadastro/familiares/excluir/{{ familiar.id }}">Excluir</a>
+        <a class="ghost-button" href="/cadastro/familiares/{{ familiar.cadastro_id }}">Voltar</a>
+    </div>
+</section>
+{% endblock %}
 
-                try {
-                    const response = await fetch(`/cadastro/familiares/${familiarId}/foto`, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]') ?
-                                document.querySelector('[name=csrfmiddlewaretoken]').value : ''
-                        }
-                    });
+{% block extra_js %}
+<script>
+    const fotoInput = document.getElementById('fotoInput');
+    const fotoPlaceholder = document.getElementById('fotoPlaceholder');
+    const familiarId = window.location.pathname.split('/').slice(-1)[0];
 
-                    const data = await response.json();
+    if (fotoPlaceholder) {
+        fotoPlaceholder.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (fotoInput) {
+                fotoInput.click();
+            }
+        });
+    }
 
-                    if (data.status === 'success') {
-                        const fotoUrl = data.foto_url ? `${data.foto_url}?t=${Date.now()}` : null;
-                        if (fotoUrl) {
-                            fotoPlaceholder.innerHTML = `<img src="${fotoUrl}" alt="Foto do familiar" style="width: 100%; height: 100%; object-fit: cover;">`;
-                        }
-                        alert('Foto enviada com sucesso!');
-                    } else {
-                        alert(data.message || 'Erro ao enviar a foto');
+    if (fotoInput) {
+        fotoInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const validTypes = ['image/png', 'image/jpeg'];
+            if (!validTypes.includes(file.type)) {
+                alert('Por favor, selecione apenas arquivos PNG ou JPEG');
+                fotoInput.value = '';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('foto', file);
+
+            try {
+                const response = await fetch(`/cadastro/familiares/${familiarId}/foto`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]') ?
+                            document.querySelector('[name=csrfmiddlewaretoken]').value : ''
                     }
-                } catch (error) {
-                    console.error('Erro:', error);
-                    alert('Erro ao enviar a foto');
-                } finally {
-                    fotoInput.value = '';
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    const fotoUrl = data.foto_url ? `${data.foto_url}?t=${Date.now()}` : null;
+                    if (fotoUrl) {
+                        fotoPlaceholder.innerHTML = `<img src="${fotoUrl}" alt="Foto do familiar" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    }
+                    alert('Foto enviada com sucesso!');
+                } else {
+                    alert(data.message || 'Erro ao enviar a foto');
                 }
-            });
-        }
-    </script>
-    <script src="{% static 'core/main_search.js' %}"></script>
-</body>
-</html>
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao enviar a foto');
+            } finally {
+                fotoInput.value = '';
+            }
+        });
+    }
+</script>
+{% endblock %}

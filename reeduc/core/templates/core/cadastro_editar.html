@@ -1,248 +1,191 @@
+{% extends "core/base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Editar Cadastro</title>
-    <link rel="stylesheet" href="{% static 'core/home.css' %}" />
-    <link rel="stylesheet" href="{% static 'core/cadastro.css' %}" />
-    <style>
-        .edit-form-container {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
 
-        .foto-section {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+{% block title %}Editar Cadastro{% endblock %}
+{% block nav_cadastros %}active{% endblock %}
+{% block extra_css %}
+<style>
+    .edit-form-container {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
 
-        .foto-section h3 {
-            margin: 0;
-            font-size: 14px;
-            font-weight: 600;
-        }
+    .foto-section {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
 
-        .foto-preview {
-            width: 100%;
-            aspect-ratio: 1;
-            background: #f0f0f0;
-            border: 2px dashed var(--border);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
+    .foto-section h3 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+    }
 
-        .foto-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+    .foto-preview {
+        width: 100%;
+        aspect-ratio: 1;
+        background: #f0f0f0;
+        border: 2px dashed var(--border);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
 
-        .foto-upload-input {
-            display: none;
-        }
+    .foto-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 
-        .foto-upload-btn {
-            padding: 10px 16px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
+    .foto-upload-input {
+        display: none;
+    }
 
-        .foto-upload-btn:hover {
-            background: var(--primary-dark, #0056b3);
-        }
+    .foto-upload-btn {
+        padding: 10px 16px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        transition: background 0.2s;
+    }
 
-        .identificacao-section {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+    .foto-upload-btn:hover {
+        background: var(--primary-dark, #0056b3);
+    }
 
-        .identificacao-section h3 {
-            margin: 0;
-            font-size: 14px;
-            font-weight: 600;
-        }
+    .identificacao-section {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
+    .identificacao-section h3 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+    }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
 
-        .form-group label {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
 
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 13px;
-            font-family: inherit;
-        }
+    .form-group label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
 
-        .form-group textarea {
-            min-height: 60px;
-            resize: vertical;
-        }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 13px;
+        font-family: inherit;
+    }
 
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-        }
+    .form-group textarea {
+        min-height: 60px;
+        resize: vertical;
+    }
 
-        .form-errors {
-            background: #fee;
-            border: 1px solid #fcc;
-            border-radius: 6px;
-            padding: 12px;
-            color: #c00;
-            font-size: 13px;
-            margin-bottom: 16px;
-        }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+    }
 
-        .form-section {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
+    .form-errors {
+        background: #fee;
+        border: 1px solid #fcc;
+        border-radius: 6px;
+        padding: 12px;
+        color: #c00;
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
 
-        .form-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-        }
+    .form-section {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
 
-        .primary-button,
-        .ghost-button {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-block;
-        }
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+    }
 
-        .primary-button {
-            background: var(--primary);
-            color: white;
-        }
+    .primary-button,
+    .ghost-button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
 
-        .primary-button:hover {
-            background: var(--primary-dark, #0056b3);
-        }
+    .primary-button {
+        background: var(--primary);
+        color: white;
+    }
 
-        .ghost-button {
-            background: transparent;
-            color: var(--primary);
-            border: 1px solid var(--primary);
-        }
+    .primary-button:hover {
+        background: var(--primary-dark, #0056b3);
+    }
 
-        .ghost-button:hover {
-            background: rgba(25, 118, 210, 0.05);
-        }
+    .ghost-button {
+        background: transparent;
+        color: var(--primary);
+        border: 1px solid var(--primary);
+    }
 
-        .form-full-width {
-            grid-column: 1 / -1;
-        }
+    .ghost-button:hover {
+        background: rgba(25, 118, 210, 0.05);
+    }
 
-        .field-error {
-            color: #c00;
-            font-size: 12px;
-            margin-top: 4px;
-        }
-    </style>
-</head>
-<body>
-    <div class="layout">
-        <aside class="sidebar">
-            <a class="brand" href="/home/">ESPI</a>
-            <button class="new-button" id="novoButton">
-                <span class="icon">+</span>
-                <span>Novo</span>
-            </button>
-            <div class="new-menu" id="novoMenu">
-                <a href="/home/cadastro/adicionar">Cadastro</a>
-                <a href="/atendimentos/adicionar">Atendimento</a>
-                <a href="/agendamentos/adicionar">Agendamento</a>
-            </div>
-            <nav class="menu">
-                <div class="menu-group">
-                    <button class="menu__item menu__item--toggle" type="button" data-target="cadastros-submenu">
-                        Cadastros
-                        <span class="caret">▾</span>
-                    </button>
-                    <div class="submenu" id="cadastros-submenu">
-                        <a class="submenu__item" href="/home/cadastros">Todos</a>
-                        <a class="submenu__item" href="/home/cadastros/ativos">Ativos</a>
-                        <a class="submenu__item" href="/home/cadastros/arquivados">Arquivados</a>
-                        <a class="submenu__item" href="/home/cadastros/familiares">Familiares</a>
-                    </div>
-                </div>
-                <a class="menu__item" href="/agendamentos">Agendamentos</a>
-                <a class="menu__item" href="/home/atendimentos">Atendimentos</a>
-                <a class="menu__item" href="/familiares/adicionar">Familiar</a>
-                <a class="menu__item" href="/atividades/minhasatividades">Atividades</a>
-            </nav>
-        </aside>
+    .form-full-width {
+        grid-column: 1 / -1;
+    }
 
-        <div class="main">
-            <header class="topbar">
-                <div class="search">
-                    <input type="text" placeholder="buscar..." />
-                    <span class="search__icon">🔍</span>
-                </div>
-                <div class="user-menu" id="userMenu">
-                    <div class="avatar" id="userMenuToggle">👤</div>
-                    <div class="user-menu__dropdown" id="userMenuDropdown">
-                        <div class="user-menu__title">Usuário</div>
-                        <a href="/usuario/perfil/{{ request.user.username }}">Meu Perfil</a>
-                        <a href="/atividades/minhasatividades">Minhas Atividades</a>
-                        <a href="/sair">Sair</a>
-                        {% if request.user.is_staff %}
-                        <div class="user-menu__title">Admin</div>
-                        <a href="/administrar/usuarios">Gerenciar Usuários</a>
-                        <a href="/administrar/adicionarUsuario">Adicionar Usuário</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </header>
+    .field-error {
+        color: #c00;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+</style>
+{% endblock %}
 
-            <section class="content">
+{% block content %}
                 <h1>Editar Cadastro - {{ cadastro.nome }}</h1>
 
                 <form method="post" enctype="multipart/form-data" class="form">
@@ -267,11 +210,49 @@
                                         <span>Nenhuma foto</span>
                                     {% endif %}
                                 </div>
-                                <button type="button" class="foto-upload-btn" id="fotoUploadBtn">
-                                    Iniciar Webcam
-                                </button>
-                                <input type="file" id="fotoUploadInput" name="foto" class="foto-upload-input" accept="image/png,image/jpeg">
+
+                                <!-- Webcam video (hidden until activated) -->
+                                <div class="webcam-container" id="webcamContainer" style="display:none;">
+                                    <video id="webcamVideo" autoplay playsinline></video>
+                                    <canvas id="webcamCanvas" style="display:none;"></canvas>
+                                </div>
+
+                                <div class="foto-buttons">
+                                    <button type="button" class="foto-upload-btn" id="fotoUploadBtn">
+                                        <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">photo_camera</span>
+                                        Iniciar Webcam
+                                    </button>
+                                    {% if cadastro.foto %}
+                                    <button type="button" class="foto-remove-btn" id="fotoRemoveBtn">
+                                        <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">delete</span>
+                                        Remover Foto
+                                    </button>
+                                    {% endif %}
+                                    <button type="button" class="foto-capture-btn" id="fotoCaptureBtn" style="display:none;">
+                                        <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">camera</span>
+                                        Capturar Foto
+                                    </button>
+                                    <button type="button" class="foto-cancel-btn" id="fotoCancelBtn" style="display:none;">
+                                        Cancelar
+                                    </button>
+                                </div>
+
+                                <input type="hidden" name="remover_foto" id="removerFotoInput" value="">
+                                <input type="file" id="fotoUploadInput" name="foto" class="foto-upload-input" accept="image/png,image/jpeg" style="display:none;">
                                 {% if form.foto.errors %}<div class="field-error">{{ form.foto.errors.0 }}</div>{% endif %}
+
+                                <!-- Modal: webcam not found -->
+                                <div class="webcam-modal-overlay" id="webcamModal" style="display:none;">
+                                    <div class="webcam-modal">
+                                        <span class="material-icons-outlined" style="font-size:48px;color:var(--danger);margin-bottom:12px;">videocam_off</span>
+                                        <h4>Webcam não encontrada</h4>
+                                        <p>Não foi possível acessar a câmera do dispositivo. Deseja abrir o explorador de arquivos para selecionar uma foto?</p>
+                                        <div class="webcam-modal-actions">
+                                            <button type="button" class="primary-button" id="modalOpenFiles">Abrir Arquivos</button>
+                                            <button type="button" class="ghost-button" id="modalCancel">Cancelar</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="identificacao-section">
@@ -374,39 +355,28 @@
                         <a class="ghost-button" href="/cadastro">Cancelar</a>
                     </div>
                 </form>
-            </section>
-        </div>
-    </div>
+{% endblock %}
 
+{% block extra_js %}
     <script>
-        const novoButton = document.getElementById('novoButton');
-        const novoMenu = document.getElementById('novoMenu');
-        const toggleButtons = document.querySelectorAll('.menu__item--toggle');
-        const userMenuToggle = document.getElementById('userMenuToggle');
-        const userMenuDropdown = document.getElementById('userMenuDropdown');
-        const fotoUploadBtn = document.getElementById('fotoUploadBtn');
+        /* ── DOM refs ── */
+        const fotoUploadBtn   = document.getElementById('fotoUploadBtn');
+        const fotoCaptureBtn  = document.getElementById('fotoCaptureBtn');
+        const fotoCancelBtn   = document.getElementById('fotoCancelBtn');
+        const fotoRemoveBtn   = document.getElementById('fotoRemoveBtn');
         const fotoUploadInput = document.getElementById('fotoUploadInput');
-        const fotoPreview = document.getElementById('fotoPreview');
+        const fotoPreview     = document.getElementById('fotoPreview');
+        const webcamContainer = document.getElementById('webcamContainer');
+        const webcamVideo     = document.getElementById('webcamVideo');
+        const webcamCanvas    = document.getElementById('webcamCanvas');
+        const webcamModal     = document.getElementById('webcamModal');
+        const modalOpenFiles  = document.getElementById('modalOpenFiles');
+        const modalCancel     = document.getElementById('modalCancel');
+        const removerFotoInput = document.getElementById('removerFotoInput');
 
-        if (novoButton) {
-            novoButton.addEventListener('click', () => {
-                novoMenu.classList.toggle('is-open');
-            });
-        }
+        let currentStream = null;
 
-        toggleButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                const target = document.getElementById(button.dataset.target);
-                if (target) target.classList.toggle('is-open');
-            });
-        });
-
-        if (userMenuToggle) {
-            userMenuToggle.addEventListener('click', () => {
-                userMenuDropdown.classList.toggle('is-open');
-            });
-        }
-
+        /* ── Máscaras ── */
         const onlyDigits = (value) => value.replace(/\D/g, '');
         const formatCpf = (value) => {
             let v = onlyDigits(value).slice(0, 11);
@@ -433,9 +403,7 @@
         const applyMask = (id, formatter) => {
             const el = document.getElementById(id);
             if (!el) return;
-            const handler = () => {
-                el.value = formatter(el.value);
-            };
+            const handler = () => { el.value = formatter(el.value); };
             el.addEventListener('input', handler);
             handler();
         };
@@ -444,14 +412,101 @@
         applyMask('id_rg_numero', formatRg);
         applyMask('id_titulo_eleitor_numero', formatTitulo);
 
-        // Foto upload functionality
+        /* ── Webcam helpers ── */
+        function stopWebcam() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(t => t.stop());
+                currentStream = null;
+            }
+            webcamVideo.srcObject = null;
+            webcamContainer.style.display = 'none';
+            fotoCaptureBtn.style.display = 'none';
+            fotoCancelBtn.style.display = 'none';
+            fotoUploadBtn.style.display = '';
+            fotoPreview.style.display = '';
+        }
+
+        function showModal() {
+            webcamModal.style.display = 'flex';
+        }
+
+        function hideModal() {
+            webcamModal.style.display = 'none';
+        }
+
+        /* ── Iniciar Webcam ── */
         if (fotoUploadBtn) {
-            fotoUploadBtn.addEventListener('click', (e) => {
+            fotoUploadBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
+                    });
+                    currentStream = stream;
+                    webcamVideo.srcObject = stream;
+                    webcamContainer.style.display = 'block';
+                    fotoPreview.style.display = 'none';
+                    fotoUploadBtn.style.display = 'none';
+                    fotoCaptureBtn.style.display = '';
+                    fotoCancelBtn.style.display = '';
+                } catch (err) {
+                    console.warn('Webcam não disponível:', err);
+                    showModal();
+                }
+            });
+        }
+
+        /* ── Capturar Foto ── */
+        if (fotoCaptureBtn) {
+            fotoCaptureBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const vw = webcamVideo.videoWidth;
+                const vh = webcamVideo.videoHeight;
+                webcamCanvas.width = vw;
+                webcamCanvas.height = vh;
+                const ctx = webcamCanvas.getContext('2d');
+                ctx.drawImage(webcamVideo, 0, 0, vw, vh);
+
+                // Show captured image in preview
+                const dataUrl = webcamCanvas.toDataURL('image/jpeg', 0.9);
+                fotoPreview.innerHTML = `<img src="${dataUrl}" alt="Foto capturada">`;
+
+                // Convert to File and assign to input
+                webcamCanvas.toBlob((blob) => {
+                    const file = new File([blob], 'webcam_foto.jpg', { type: 'image/jpeg' });
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    fotoUploadInput.files = dt.files;
+                }, 'image/jpeg', 0.9);
+
+                stopWebcam();
+            });
+        }
+
+        /* ── Cancelar Webcam ── */
+        if (fotoCancelBtn) {
+            fotoCancelBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                stopWebcam();
+            });
+        }
+
+        /* ── Modal: abrir arquivos ── */
+        if (modalOpenFiles) {
+            modalOpenFiles.addEventListener('click', () => {
+                hideModal();
                 fotoUploadInput.click();
             });
         }
 
+        /* ── Modal: cancelar ── */
+        if (modalCancel) {
+            modalCancel.addEventListener('click', () => {
+                hideModal();
+            });
+        }
+
+        /* ── File input change (from file picker) ── */
         if (fotoUploadInput) {
             fotoUploadInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
@@ -461,7 +516,8 @@
                         alert('Por favor, selecione apenas arquivos PNG ou JPEG');
                         return;
                     }
-
+                    // Clear remove flag since user is uploading a new photo
+                    if (removerFotoInput) removerFotoInput.value = '';
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         fotoPreview.innerHTML = `<img src="${event.target.result}" alt="Preview da foto">`;
@@ -470,7 +526,18 @@
                 }
             });
         }
+
+        /* ── Remover Foto ── */
+        if (fotoRemoveBtn) {
+            fotoRemoveBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (!confirm('Tem certeza que deseja remover a foto?')) return;
+                fotoPreview.innerHTML = '<span>Nenhuma foto</span>';
+                if (removerFotoInput) removerFotoInput.value = '1';
+                // Clear file input in case user had selected a new file
+                if (fotoUploadInput) fotoUploadInput.value = '';
+                fotoRemoveBtn.style.display = 'none';
+            });
+        }
     </script>
-    <script src="{% static 'core/main_search.js' %}"></script>
-</body>
-</html>
+{% endblock %}

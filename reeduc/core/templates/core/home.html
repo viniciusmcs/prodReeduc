@@ -1,218 +1,163 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ESPI</title>
-    <link rel="stylesheet" href="{% static 'core/home.css' %}" />
-</head>
-<body>
-    <div class="layout">
-        <aside class="sidebar">
-            <a class="brand" href="/home/">ESPI</a>
-            <button class="new-button" id="novoButton">
-                <span class="icon">+</span>
-                <span>Novo</span>
-            </button>
-            <div class="new-menu" id="novoMenu">
-                <a href="/home/cadastro/adicionar">Cadastro</a>
-                <a href="/atendimentos/adicionar">Atendimento</a>
-                <a href="/agendamentos/adicionar">Agendamento</a>
+{% extends "core/base.html" %}
+
+{% block title %}ESPI - Início{% endblock %}
+
+{% block nav_home %}active{% endblock %}
+
+{% block content %}
+<!-- Greeting -->
+<div class="greeting">
+    <h1>Olá, {{ user_name|default:"Administrador" }}</h1>
+    <p>Boas vindas ao ESPI — acompanhe os números e gerencie seus registros.</p>
+</div>
+
+<!-- Quick Actions -->
+<div class="quick-actions">
+    <a class="quick-action quick-action--primary" href="/home/cadastro/adicionar">
+        <span class="material-icons-outlined">person_add</span>
+        Adicionar Cadastro
+    </a>
+    <a class="quick-action" href="/relatorios">
+        <span class="material-icons-outlined">assessment</span>
+        Relatórios
+    </a>
+    <a class="quick-action" href="/agendamentos/adicionar">
+        <span class="material-icons-outlined">event</span>
+        Agendamento
+    </a>
+    <a class="quick-action" href="/familiares/adicionar">
+        <span class="material-icons-outlined">group_add</span>
+        Familiar
+    </a>
+</div>
+
+<!-- Stat Cards -->
+<div class="dashboard-grid">
+    <a class="stat-card" href="/home/cadastros">
+        <div class="stat-card__icon stat-card__icon--blue">
+            <span class="material-icons-outlined">people</span>
+        </div>
+        <div class="stat-card__info">
+            <span class="stat-card__label">Cadastros</span>
+            <span class="stat-card__value">{{ total_cadastros }}</span>
+        </div>
+    </a>
+
+    <a class="stat-card" href="/agendamentos">
+        <div class="stat-card__icon stat-card__icon--orange">
+            <span class="material-icons-outlined">calendar_today</span>
+        </div>
+        <div class="stat-card__info">
+            <span class="stat-card__label">Agendamentos</span>
+            <span class="stat-card__value">{{ total_agendamentos }}</span>
+        </div>
+    </a>
+
+    <a class="stat-card" href="/home/atendimentos">
+        <div class="stat-card__icon stat-card__icon--green">
+            <span class="material-icons-outlined">assignment</span>
+        </div>
+        <div class="stat-card__info">
+            <span class="stat-card__label">Atendimentos</span>
+            <span class="stat-card__value">{{ total_atendimentos }}</span>
+        </div>
+    </a>
+
+    <a class="stat-card" href="/familiares">
+        <div class="stat-card__icon stat-card__icon--purple">
+            <span class="material-icons-outlined">family_restroom</span>
+        </div>
+        <div class="stat-card__info">
+            <span class="stat-card__label">Familiares</span>
+            <span class="stat-card__value">{{ total_familiares_avulsos }}</span>
+        </div>
+    </a>
+
+    <a class="stat-card" href="/home/cadastros">
+        <div class="stat-card__icon stat-card__icon--red">
+            <span class="material-icons-outlined">update</span>
+        </div>
+        <div class="stat-card__info">
+            <span class="stat-card__label">Último cadastro</span>
+            <span class="stat-card__value">
+                {% if ultimo_cadastro %}
+                    {{ ultimo_cadastro.data_cadastro|date:"d/m/Y" }}
+                {% else %}
+                    —
+                {% endif %}
+            </span>
+        </div>
+    </a>
+</div>
+
+<!-- Relatórios Card -->
+<div class="data-card" style="margin-bottom: 24px;">
+    <div class="data-card__header">
+        <h2><span class="material-icons-outlined" style="vertical-align: middle; margin-right: 8px;">assessment</span>Relatórios</h2>
+        <a href="/relatorios" class="btn btn--primary btn--sm"><span class="material-icons-outlined" style="font-size:16px">arrow_forward</span> Acessar</a>
+    </div>
+    <div class="data-card__body" style="padding: 20px;">
+        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Gere relatórios completos do sistema em PDF com filtros personalizados.</p>
+        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text);">
+                <span class="material-icons-outlined" style="font-size: 18px; color: var(--primary);">people</span>
+                Egressos e cadastros
             </div>
-            <nav class="menu">
-                <div class="menu-group">
-                    <button class="menu__item menu__item--toggle" type="button" data-target="cadastros-submenu">
-                        Cadastros
-                        <span class="caret">▾</span>
-                    </button>
-                    <div class="submenu" id="cadastros-submenu">
-                        <a class="submenu__item" href="/home/cadastros">Todos</a>
-                        <a class="submenu__item" href="/home/cadastros/ativos">Ativos</a>
-                        <a class="submenu__item" href="/home/cadastros/arquivados">Arquivados</a>
-                        <a class="submenu__item" href="/home/cadastros/familiares">Familiares</a>
-                    </div>
-                </div>
-                <a class="menu__item" href="/agendamentos">Agendamentos</a>
-                <a class="menu__item" href="/home/atendimentos">Atendimentos</a>
-                <a class="menu__item" href="/familiares/adicionar">Familiar</a>
-                <a class="menu__item" href="/atividades/minhasatividades">Atividades</a>
-            </nav>
-        </aside>
-
-        <div class="main">
-            <header class="topbar">
-                <div class="search">
-                    <input type="text" placeholder="buscar..." />
-                    <span class="search__icon">🔍</span>
-                </div>
-                <div class="user-menu" id="userMenu">
-                    <div class="avatar" id="userMenuToggle">👤</div>
-                    <div class="user-menu__dropdown" id="userMenuDropdown">
-                        <div class="user-menu__title">Usuário</div>
-                        <a href="/usuario/perfil/{{ request.user.username }}">Meu Perfil</a>
-                        <a href="/atividades/minhasatividades">Minhas Atividades</a>
-                        <a href="/sair">Sair</a>
-                        {% if request.user.is_staff %}
-                        <div class="user-menu__title">Admin</div>
-                        <a href="/administrar/usuarios">Gerenciar Usuários</a>
-                        <a href="/administrar/adicionarUsuario">Adicionar Usuário</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </header>
-
-            <section class="content">
-                <h1>Olá, {{ user_name|default:"Administrador" }}, boas vindas ao ESPI</h1>
-
-                <div class="cards">
-                    <article class="card card--link" onclick="location.href='/cadastro'">
-                        <div class="card__header">
-                            <h3>Cadastros</h3>
-                            <span class="badge">{{ total_cadastros }}</span>
-                        </div>
-                        <div class="card__body">
-                            <p>{{ cadastros_ativos }} cadastro{{ cadastros_ativos|pluralize }} ativo{{ cadastros_ativos|pluralize }}</p>
-                            <p>{{ cadastros_arquivados }} cadastro{{ cadastros_arquivados|pluralize }} arquivado{{ cadastros_arquivados|pluralize }}</p>
-                            {% if ultimo_cadastro %}
-                            <p>Último cadastro criado em</p>
-                            <strong>{{ ultimo_cadastro.data_cadastro|date:"d/m/Y" }}</strong>
-                            {% else %}
-                            <p>Nenhum cadastro criado</p>
-                            {% endif %}
-                        </div>
-                    </article>
-
-                    <article class="card card--link" onclick="location.href='/agendamentos'">
-                        <div class="card__header">
-                            <h3>Agendamentos</h3>
-                            <span class="badge">{{ total_agendamentos }}</span>
-                        </div>
-                        <div class="card__body">
-                            {% if total_agendamentos > 0 %}
-                            <p>{{ total_agendamentos }} agendamento{{ total_agendamentos|pluralize }} cadastrado{{ total_agendamentos|pluralize }}</p>
-                            <p>Clique para gerenciar</p>
-                            {% else %}
-                            <p>Nenhum agendamento cadastrado</p>
-                            <p>Clique para criar</p>
-                            {% endif %}
-                        </div>
-                    </article>
-
-                    <article class="card card--link" onclick="location.href='/home/atendimentos'">
-                        <div class="card__header">
-                            <h3>Atendimentos</h3>
-                            <span class="badge">{{ total_atendimentos }}</span>
-                        </div>
-                        <div class="card__body">
-                            {% if total_atendimentos > 0 %}
-                            <p>{{ total_atendimentos }} atendimento{{ total_atendimentos|pluralize }} realizado{{ total_atendimentos|pluralize }}</p>
-                            <p>Clique para registrar novo</p>
-                            {% else %}
-                            <p>Nenhum atendimento registrado</p>
-                            <p>Clique para criar</p>
-                            {% endif %}
-                        </div>
-                    </article>
-
-                    <article class="card card--link" onclick="location.href='/familiares'">
-                        <div class="card__header">
-                            <h3>Familiar</h3>
-                            <span class="badge">{{ total_familiares_avulsos }}</span>
-                        </div>
-                        <div class="card__body">
-                            {% if total_familiares_avulsos > 0 %}
-                            <p>{{ total_familiares_avulsos }} familiar{{ total_familiares_avulsos|pluralize }} sem vínculo cadastrado{{ total_familiares_avulsos|pluralize }}</p>
-                            <p>Clique para visualizar</p>
-                            {% else %}
-                            <p>Nenhum familiar sem vínculo cadastrado</p>
-                            <p>Clique para criar</p>
-                            {% endif %}
-                        </div>
-                    </article>
-
-                    <article class="card card--link" onclick="location.href='/atividades/minhasatividades'">
-                        <div class="card__header">
-                            <h3>Atividades</h3>
-                            <span class="badge">0</span>
-                        </div>
-                        <div class="card__body">
-                            <p>Suas atividades e tarefas</p>
-                            <p>Clique para visualizar</p>
-                        </div>
-                    </article>
-                </div>
-
-                <section class="table-card">
-                    <div class="table-card__header">
-                        <h2>Agendamentos Pendentes</h2>
-                        <span class="badge badge--danger">{{ total_agendamentos }}</span>
-                    </div>
-                    <div class="table-card__body">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Data</th>
-                                    <th>Egresso</th>
-                                    <th>Tipo de Agendamento</th>
-                                    <th>Horário</th>
-                                    <th>Observações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in agendamentos_with_cadastro %}
-                                <tr>
-                                    <td>{{ item.agendamento.data_agendamento|date:"d/m/Y" }}</td>
-                                    <td>
-                                        {% if item.cadastro %}
-                                            <a href="/cadastro/perfil/{{ item.cadastro.id }}" style="color: var(--primary); text-decoration: none;">{{ item.agendamento.nome_atendido }}</a>
-                                        {% else %}
-                                            {{ item.agendamento.nome_atendido }}
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ item.agendamento.get_tipo_agendamento_display|default:"-" }}</td>
-                                    <td>{{ item.agendamento.horario_atendimento|default:"-" }}</td>
-                                    <td>{{ item.agendamento.observacoes|truncatewords:10|default:"-" }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="5">Nenhum agendamento no momento.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            </section>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text);">
+                <span class="material-icons-outlined" style="font-size: 18px; color: var(--primary);">family_restroom</span>
+                Familiares
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text);">
+                <span class="material-icons-outlined" style="font-size: 18px; color: var(--primary);">assignment</span>
+                Atendimentos
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text);">
+                <span class="material-icons-outlined" style="font-size: 18px; color: var(--primary);">filter_alt</span>
+                Filtros personalizados
+            </div>
         </div>
     </div>
+</div>
 
-    <script>
-        const novoButton = document.getElementById('novoButton');
-        const novoMenu = document.getElementById('novoMenu');
-        const toggleButtons = document.querySelectorAll('.menu__item--toggle');
-        const userMenuToggle = document.getElementById('userMenuToggle');
-        const userMenuDropdown = document.getElementById('userMenuDropdown');
-
-        if (novoButton) {
-            novoButton.addEventListener('click', () => {
-                novoMenu.classList.toggle('is-open');
-            });
-        }
-
-        toggleButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                const target = document.getElementById(button.dataset.target);
-                if (target) target.classList.toggle('is-open');
-            });
-        });
-
-        if (userMenuToggle) {
-            userMenuToggle.addEventListener('click', () => {
-                userMenuDropdown.classList.toggle('is-open');
-            });
-        }
-    </script>
-    <script src="{% static 'core/main_search.js' %}"></script>
-</body>
-</html>
+<!-- Agendamentos Table -->
+<div class="data-card">
+    <div class="data-card__header">
+        <h2>Agendamentos Pendentes</h2>
+        <span class="data-card__badge data-card__badge--danger">{{ total_agendamentos }}</span>
+    </div>
+    <div class="data-card__body">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Egresso</th>
+                    <th>Tipo de Agendamento</th>
+                    <th>Horário</th>
+                    <th>Observações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in agendamentos_with_cadastro %}
+                <tr>
+                    <td>{{ item.agendamento.data_agendamento|date:"d/m/Y" }}</td>
+                    <td>
+                        {% if item.cadastro %}
+                            <a href="/cadastro/perfil/{{ item.cadastro.id }}">{{ item.agendamento.nome_atendido }}</a>
+                        {% else %}
+                            {{ item.agendamento.nome_atendido }}
+                        {% endif %}
+                    </td>
+                    <td>{{ item.agendamento.get_tipo_agendamento_display|default:"-" }}</td>
+                    <td>{{ item.agendamento.horario_atendimento|default:"-" }}</td>
+                    <td>{{ item.agendamento.observacoes|truncatewords:10|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">Nenhum agendamento no momento.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -8,8 +8,8 @@ from datetime import datetime
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db import IntegrityError
-from django.http import JsonResponse
+from django.db import IntegrityError, models as db_models
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -464,7 +464,10 @@ def cadastro_editar_view(request, cadastro_id: int):
     if request.method == "POST":
         form = CadastroForm(request.POST, request.FILES, instance=cadastro)
         if form.is_valid():
-            form.save()
+            obj = form.save(commit=False)
+            if request.POST.get("remover_foto") == "1" and not request.FILES.get("foto"):
+                obj.foto = None
+            obj.save()
             return redirect("cadastro-lista")
     else:
         form = CadastroForm(instance=cadastro)
@@ -1016,3 +1019,295 @@ def login_view(request):
         "error": error,
     }
     return render(request, "core/login.html", context)
+
+
+# ────────────────────────────────────────────────────────
+#  Relatórios
+# ────────────────────────────────────────────────────────
+
+
+@login_required
+def relatorios_view(request):
+    """Render the reports page with filters."""
+    context = {
+        "total_cadastros": Cadastro.objects.count(),
+        "total_familiares": Familiar.objects.count(),
+        "total_atendimentos": Atendimento.objects.count(),
+        "total_agendamentos": Agendamento.objects.count(),
+    }
+    return render(request, "core/relatorios.html", context)
+
+
+def _apply_cadastro_filters(qs, params):
+    """Apply query-string filters to a Cadastro queryset."""
+    if params.get("status_cadastro"):
+        qs = qs.filter(status=params["status_cadastro"])
+    if params.get("data_inicio"):
+        qs = qs.filter(data_cadastro__gte=params["data_inicio"])
+    if params.get("data_fim"):
+        qs = qs.filter(data_cadastro__lte=params["data_fim"])
+    if params.get("sexo_biologico"):
+        qs = qs.filter(sexo_biologico=params["sexo_biologico"])
+    if params.get("etnia"):
+        qs = qs.filter(identidade_etnico_racial=params["etnia"])
+    if params.get("grau_instrucao"):
+        qs = qs.filter(grau_instrucao=params["grau_instrucao"])
+    if params.get("status_ocupacional"):
+        qs = qs.filter(status_ocupacional=params["status_ocupacional"])
+    if params.get("zona_cidade"):
+        qs = qs.filter(zona_cidade=params["zona_cidade"])
+    if params.get("nome"):
+        qs = qs.filter(nome__icontains=params["nome"])
+    return qs
+
+
+@login_required
+def relatorios_pdf_view(request):
+    """Generate a PDF report based on selected sections and filters."""
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.units import mm
+    from reportlab.platypus import (
+        SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether,
+    )
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+    import io
+
+    params = request.GET
+    secoes = params.getlist("secao")
+    if not secoes:
+        secoes = ["cadastros", "familiares", "atendimentos", "agendamentos", "quantitativos"]
+
+    # Filtered queryset
+    cadastros = _apply_cadastro_filters(
+        Cadastro.objects.all().order_by("nome"), params
+    )
+    familiares_qs = Familiar.objects.all().order_by("nome")
+    atendimentos_qs = Atendimento.objects.all().order_by("-data_atendimento")
+    agendamentos_qs = Agendamento.objects.all().order_by("-data_agendamento")
+
+    # If filtering cadastros, also filter related familiares
+    if any(params.get(k) for k in ("status_cadastro", "data_inicio", "data_fim",
+                                     "sexo_biologico", "etnia", "grau_instrucao",
+                                     "status_ocupacional", "zona_cidade", "nome")):
+        cadastro_ids = list(cadastros.values_list("id", flat=True))
+        familiares_qs = familiares_qs.filter(
+            db_models.Q(cadastro_id__in=cadastro_ids) | db_models.Q(cadastro__isnull=True)
+        )
+
+    # ── Build PDF ──
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buf, pagesize=A4,
+        leftMargin=20 * mm, rightMargin=20 * mm,
+        topMargin=20 * mm, bottomMargin=20 * mm,
+    )
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(
+        "SectionTitle", parent=styles["Heading2"],
+        textColor=colors.HexColor("#0066FF"), spaceBefore=16, spaceAfter=8,
+    ))
+    styles.add(ParagraphStyle(
+        "CellText", parent=styles["Normal"], fontSize=8, leading=10,
+    ))
+    styles.add(ParagraphStyle(
+        "SmallBold", parent=styles["Normal"], fontSize=8, leading=10,
+        textColor=colors.white,
+    ))
+
+    story = []
+
+    # ── Header ──
+    header_style = ParagraphStyle(
+        "ReportHeader", parent=styles["Title"],
+        textColor=colors.HexColor("#0066FF"), alignment=TA_CENTER,
+    )
+    story.append(Paragraph("ESPI — Relatório do Sistema", header_style))
+    story.append(Spacer(1, 4 * mm))
+
+    subtitle = ParagraphStyle(
+        "Subtitle", parent=styles["Normal"],
+        alignment=TA_CENTER, textColor=colors.grey, fontSize=10,
+    )
+    now = timezone.localtime(timezone.now())
+    story.append(Paragraph(
+        f"Gerado em {now.strftime('%d/%m/%Y')} às {now.strftime('%H:%M')} por {request.user.username}",
+        subtitle,
+    ))
+    story.append(Spacer(1, 8 * mm))
+
+    # Helper for tables
+    base_table_style = TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0066FF")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, 0), 8),
+        ("FONTSIZE", (0, 1), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 1), (-1, -1), 4),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e2e8f0")),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+    ])
+
+    cell = styles["CellText"]
+
+    def make_para(text):
+        return Paragraph(str(text) if text else "—", cell)
+
+    def header_para(text):
+        return Paragraph(str(text), styles["SmallBold"])
+
+    # ── Quantitativos ──
+    if "quantitativos" in secoes:
+        quant_title = Paragraph("Resumo Quantitativo", styles["SectionTitle"])
+        total_cad = cadastros.count()
+        ativos = cadastros.filter(status="ativo").count()
+        arquivados = cadastros.filter(status="arquivado").count()
+        total_fam = familiares_qs.count()
+        fam_vinculados = familiares_qs.filter(cadastro__isnull=False).count()
+        fam_avulsos = familiares_qs.filter(cadastro__isnull=True).count()
+        total_atd = atendimentos_qs.count()
+        total_agd = agendamentos_qs.count()
+
+        summary_data = [
+            [header_para("Indicador"), header_para("Quantidade")],
+            [make_para("Total de Cadastros / Egressos"), make_para(str(total_cad))],
+            [make_para("  ↳ Ativos"), make_para(str(ativos))],
+            [make_para("  ↳ Arquivados"), make_para(str(arquivados))],
+            [make_para("Total de Familiares"), make_para(str(total_fam))],
+            [make_para("  ↳ Vinculados a cadastro"), make_para(str(fam_vinculados))],
+            [make_para("  ↳ Avulsos (sem vínculo)"), make_para(str(fam_avulsos))],
+            [make_para("Total de Atendimentos"), make_para(str(total_atd))],
+            [make_para("Total de Agendamentos"), make_para(str(total_agd))],
+        ]
+        tbl = Table(summary_data, colWidths=[120 * mm, 40 * mm])
+        tbl.setStyle(base_table_style)
+        story.append(KeepTogether([quant_title, tbl]))
+        story.append(Spacer(1, 6 * mm))
+
+        # Distribution tables
+        for label, field, choices in [
+            ("Sexo Biológico", "sexo_biologico", Cadastro.SEXO_BIOLOGICO_CHOICES),
+            ("Etnia", "identidade_etnico_racial", Cadastro.ETNIA_CHOICES),
+            ("Grau de Instrução", "grau_instrucao", Cadastro.GRAU_INSTRUCAO_CHOICES),
+            ("Status Ocupacional", "status_ocupacional", Cadastro.STATUS_OCUPACIONAL_CHOICES),
+            ("Zona da Cidade", "zona_cidade", Cadastro.ZONA_CIDADE_CHOICES),
+        ]:
+            title_para = Paragraph(f"Distribuição por {label}", styles["SectionTitle"])
+            dist_data = [[header_para(label), header_para("Quantidade")]]
+            for value, display in choices:
+                count = cadastros.filter(**{field: value}).count()
+                dist_data.append([make_para(display), make_para(str(count))])
+            blank_count = cadastros.filter(**{field: ""}).count()
+            if blank_count:
+                dist_data.append([make_para("Não informado"), make_para(str(blank_count))])
+            tbl = Table(dist_data, colWidths=[120 * mm, 40 * mm])
+            tbl.setStyle(base_table_style)
+            story.append(KeepTogether([title_para, tbl, Spacer(1, 4 * mm)]))
+
+    # ── Cadastros ──
+    if "cadastros" in secoes:
+        cad_title = Paragraph(f"Cadastros / Egressos ({cadastros.count()})", styles["SectionTitle"])
+        cad_data = [[
+            header_para("Nome"), header_para("CPF"), header_para("Status"),
+            header_para("Nascimento"), header_para("Cidade/UF"),
+            header_para("Sexo"), header_para("Instrução"),
+        ]]
+        for c in cadastros:
+            cad_data.append([
+                make_para(c.nome),
+                make_para(c.cpf_numero),
+                make_para(c.get_status_display()),
+                make_para(c.data_nascimento.strftime("%d/%m/%Y") if c.data_nascimento else ""),
+                make_para(f"{c.cidade}/{c.estado_uf}" if c.cidade else ""),
+                make_para(c.get_sexo_biologico_display() if c.sexo_biologico else ""),
+                make_para(c.get_grau_instrucao_display() if c.grau_instrucao else ""),
+            ])
+        if len(cad_data) == 1:
+            cad_data.append([make_para("Nenhum registro encontrado")] + [make_para("")] * 6)
+        tbl = Table(cad_data, colWidths=[35 * mm, 22 * mm, 18 * mm, 22 * mm, 25 * mm, 22 * mm, 26 * mm])
+        tbl.setStyle(base_table_style)
+        story.append(Spacer(1, 6 * mm))
+        story.append(KeepTogether([cad_title, tbl]))
+
+    # ── Familiares ──
+    if "familiares" in secoes:
+        fam_title = Paragraph(f"Familiares ({familiares_qs.count()})", styles["SectionTitle"])
+        fam_data = [[
+            header_para("Nome"), header_para("Parentesco"),
+            header_para("CPF"), header_para("Telefone"),
+            header_para("Egresso Vinculado"),
+        ]]
+        for f in familiares_qs:
+            fam_data.append([
+                make_para(f.nome),
+                make_para(f.parentesco),
+                make_para(f.cpf_numero),
+                make_para(f.telefone_numero),
+                make_para(f.cadastro.nome if f.cadastro else "Avulso"),
+            ])
+        if len(fam_data) == 1:
+            fam_data.append([make_para("Nenhum registro encontrado")] + [make_para("")] * 4)
+        tbl = Table(fam_data, colWidths=[38 * mm, 28 * mm, 25 * mm, 25 * mm, 38 * mm])
+        tbl.setStyle(base_table_style)
+        story.append(Spacer(1, 6 * mm))
+        story.append(KeepTogether([fam_title, tbl]))
+
+    # ── Atendimentos ──
+    if "atendimentos" in secoes:
+        atd_title = Paragraph(f"Atendimentos ({atendimentos_qs.count()})", styles["SectionTitle"])
+        atd_data = [[
+            header_para("Data"), header_para("Pessoa Atendida"),
+            header_para("Tipo"), header_para("Local"),
+            header_para("Motivo"), header_para("Status"),
+        ]]
+        for a in atendimentos_qs:
+            atd_data.append([
+                make_para(a.data_atendimento.strftime("%d/%m/%Y") if a.data_atendimento else ""),
+                make_para(a.nome_pessoa_atendida),
+                make_para(a.get_tipo_atendimento_display() if a.tipo_atendimento else ""),
+                make_para(a.get_local_atendimento_display() if a.local_atendimento else ""),
+                make_para(a.get_motivo_procura_display() if a.motivo_procura else ""),
+                make_para(a.get_status_display() if a.status else ""),
+            ])
+        if len(atd_data) == 1:
+            atd_data.append([make_para("Nenhum registro encontrado")] + [make_para("")] * 5)
+        tbl = Table(atd_data, colWidths=[22 * mm, 35 * mm, 25 * mm, 28 * mm, 25 * mm, 20 * mm])
+        tbl.setStyle(base_table_style)
+        story.append(Spacer(1, 6 * mm))
+        story.append(KeepTogether([atd_title, tbl]))
+
+    # ── Agendamentos ──
+    if "agendamentos" in secoes:
+        agd_title = Paragraph(f"Agendamentos ({agendamentos_qs.count()})", styles["SectionTitle"])
+        agd_data = [[
+            header_para("Data"), header_para("Horário"),
+            header_para("Nome"), header_para("Tipo"),
+            header_para("Observações"),
+        ]]
+        for ag in agendamentos_qs:
+            agd_data.append([
+                make_para(ag.data_agendamento.strftime("%d/%m/%Y") if ag.data_agendamento else ""),
+                make_para(ag.horario_atendimento),
+                make_para(ag.nome_atendido),
+                make_para(ag.get_tipo_agendamento_display() if ag.tipo_agendamento else ""),
+                make_para(ag.observacoes[:80] if ag.observacoes else ""),
+            ])
+        if len(agd_data) == 1:
+            agd_data.append([make_para("Nenhum registro encontrado")] + [make_para("")] * 4)
+        tbl = Table(agd_data, colWidths=[24 * mm, 18 * mm, 40 * mm, 28 * mm, 50 * mm])
+        tbl.setStyle(base_table_style)
+        story.append(Spacer(1, 6 * mm))
+        story.append(KeepTogether([agd_title, tbl]))
+
+    # Build
+    doc.build(story)
+    buf.seek(0)
+
+    response = HttpResponse(buf.read(), content_type="application/pdf")
+    filename = f"relatorio_espi_{now.strftime('%Y%m%d_%H%M')}.pdf"
+    response["Content-Disposition"] = f'inline; filename="{filename}"'
+    return response

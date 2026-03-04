@@ -1,271 +1,187 @@
+{% extends "core/base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Novo Atendimento</title>
-    <link rel="stylesheet" href="{% static 'core/home.css' %}" />
-    <link rel="stylesheet" href="{% static 'core/cadastro.css' %}" />
-    <link rel="stylesheet" href="{% static 'core/atendimento.css' %}" />
-    <style>
-        .autocomplete-container {
-            position: relative;
-        }
 
-        .autocomplete-list {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid var(--border);
-            border-top: none;
-            border-radius: 0 0 6px 6px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 100;
-            display: none;
-            margin-top: -1px;
-        }
+{% block title %}Adicionar Atendimento{% endblock %}
 
-        .autocomplete-list.show {
-            display: block;
-        }
+{% block nav_atendimentos %}active{% endblock %}
 
-        .autocomplete-item {
-            padding: 10px 12px;
-            cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background 0.2s;
-        }
+{% block extra_css %}
+<style>
+    .autocomplete-container {
+        position: relative;
+    }
 
-        .autocomplete-item:last-child {
-            border-bottom: none;
-        }
+    .autocomplete-list {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid var(--border);
+        border-top: none;
+        border-radius: 0 0 6px 6px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 100;
+        display: none;
+        margin-top: -1px;
+    }
 
-        .autocomplete-item:hover {
-            background: #f7f8fd;
-        }
+    .autocomplete-list.show {
+        display: block;
+    }
 
-        .autocomplete-item.selected {
-            background: #e3f2fd;
-        }
-    </style>
-</head>
-<body>
-    <div class="layout">
-        <aside class="sidebar">
-            <a class="brand" href="/home/">ESPI</a>
-            <button class="new-button" id="novoButton">
-                <span class="icon">+</span>
-                <span>Novo</span>
-            </button>
-            <div class="new-menu" id="novoMenu">
-                <a href="/home/cadastro/adicionar">Cadastro</a>
-                <a href="/atendimentos/adicionar">Atendimento</a>
-                <a href="/agendamentos/adicionar">Agendamento</a>
-            </div>
-            <nav class="menu">
-                <div class="menu-group">
-                    <button class="menu__item menu__item--toggle" type="button" data-target="cadastros-submenu">
-                        Cadastros
-                        <span class="caret">▾</span>
-                    </button>
-                    <div class="submenu" id="cadastros-submenu">
-                        <a class="submenu__item" href="/home/cadastros">Todos</a>
-                        <a class="submenu__item" href="/home/cadastros/ativos">Ativos</a>
-                        <a class="submenu__item" href="/home/cadastros/arquivados">Arquivados</a>
-                        <a class="submenu__item" href="/home/cadastros/familiares">Familiares</a>
-                    </div>
-                </div>
-                <a class="menu__item" href="/agendamentos">Agendamentos</a>
-                <a class="menu__item" href="/home/atendimentos">Atendimentos</a>
-                <a class="menu__item" href="/familiares/adicionar">Familiar</a>
-                <a class="menu__item" href="/atividades/minhasatividades">Atividades</a>
-            </nav>
-        </aside>
+    .autocomplete-item {
+        padding: 10px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.2s;
+    }
 
-        <div class="main">
-            <header class="topbar">
-                <div class="search">
-                    <input type="text" placeholder="buscar..." />
-                    <span class="search__icon">🔍</span>
-                </div>
-                <div class="user-menu" id="userMenu">
-                    <div class="avatar" id="userMenuToggle">👤</div>
-                    <div class="user-menu__dropdown" id="userMenuDropdown">
-                        <div class="user-menu__title">Usuário</div>
-                        <a href="/usuario/perfil/{{ request.user.username }}">Meu Perfil</a>
-                        <a href="/atividades/minhasatividades">Minhas Atividades</a>
-                        <a href="/sair">Sair</a>
-                        {% if request.user.is_staff %}
-                        <div class="user-menu__title">Admin</div>
-                        <a href="/administrar/usuarios">Gerenciar Usuários</a>
-                        <a href="/administrar/adicionarUsuario">Adicionar Usuário</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </header>
+    .autocomplete-item:last-child {
+        border-bottom: none;
+    }
 
-            <section class="content">
-                <h1>Novo Atendimento ao Egresso ou Familiar Não Cadastrado</h1>
+    .autocomplete-item:hover {
+        background: #f7f8fd;
+    }
 
-                <form method="post" class="form">
-                    {% csrf_token %}
-                    {% if form.errors %}
-                    <div class="form-errors">
-                        <strong>Verifique os campos abaixo:</strong>
-                        {{ form.non_field_errors }}
-                    </div>
-                    {% endif %}
+    .autocomplete-item.selected {
+        background: #e3f2fd;
+    }
+</style>
+{% endblock %}
 
-                    <div class="grid">
-                        <div class="field autocomplete-container">
-                            <label for="id_nome_pessoa_atendida">Nome da Pessoa Atendida</label>
-                            {{ form.nome_pessoa_atendida }}
-                            <div class="autocomplete-list" id="autocompleteList"></div>
-                        </div>
-                    </div>
+{% block content %}
+<h1>Novo Atendimento ao Egresso ou Familiar Não Cadastrado</h1>
 
-                    <div class="grid">
-                        <div class="field">
-                            <label for="id_data_atendimento">Data de Atendimento</label>
-                            {{ form.data_atendimento }}
-                        </div>
-                        <div class="field">
-                            <label for="id_local_atendimento">Local de Atendimento</label>
-                            {{ form.local_atendimento }}
-                        </div>
-                    </div>
+<form method="post" class="form">
+    {% csrf_token %}
+    {% if form.errors %}
+    <div class="form-errors">
+        <strong>Verifique os campos abaixo:</strong>
+        {{ form.non_field_errors }}
+    </div>
+    {% endif %}
 
-                    <div class="grid">
-                        <div class="field">
-                            <label for="id_tipo_atendimento">Tipo de Atendimento</label>
-                            {{ form.tipo_atendimento }}
-                        </div>
-                        <div class="field">
-                            <label for="id_perfil_pessoa_atendida">Perfil da Pessoa Atendida</label>
-                            {{ form.perfil_pessoa_atendida }}
-                        </div>
-                    </div>
-
-                    <div class="grid">
-                        <div class="field">
-                            <label for="id_motivo_procura">Motivo da procura/atendimento?</label>
-                            {{ form.motivo_procura }}
-                        </div>
-                    </div>
-
-                    <div class="grid">
-                        <div class="field">
-                            <label for="id_objetivo_atendimento">Objetivo do Atendimento</label>
-                            {{ form.objetivo_atendimento }}
-                        </div>
-                    </div>
-
-                    <div class="grid">
-                        <div class="field">
-                            <label for="id_profissional_responsavel">Profissional Responsável</label>
-                            {{ form.profissional_responsavel }}
-                        </div>
-                        <div class="field">
-                            <label for="id_outras_pessoas_participantes">Outras Pessoas Participantes</label>
-                            {{ form.outras_pessoas_participantes }}
-                        </div>
-                    </div>
-
-                    <div class="grid">
-                        <div class="field">
-                            <label for="id_descricao_atendimento">Descrição do Atendimento e Observações</label>
-                            {{ form.descricao_atendimento }}
-                        </div>
-                    </div>
-
-                    <div class="actions">
-                        <button type="submit" class="primary-button">Salvar</button>
-                    </div>
-                </form>
-            </section>
+    <div class="grid">
+        <div class="field autocomplete-container">
+            <label for="id_nome_pessoa_atendida">Nome da Pessoa Atendida</label>
+            {{ form.nome_pessoa_atendida }}
+            <div class="autocomplete-list" id="autocompleteList"></div>
         </div>
     </div>
 
-    <script>
-        const novoButton = document.getElementById('novoButton');
-        const novoMenu = document.getElementById('novoMenu');
-        const toggleButtons = document.querySelectorAll('.menu__item--toggle');
-        const userMenuToggle = document.getElementById('userMenuToggle');
-        const userMenuDropdown = document.getElementById('userMenuDropdown');
+    <div class="grid">
+        <div class="field">
+            <label for="id_data_atendimento">Data de Atendimento</label>
+            {{ form.data_atendimento }}
+        </div>
+        <div class="field">
+            <label for="id_local_atendimento">Local de Atendimento</label>
+            {{ form.local_atendimento }}
+        </div>
+    </div>
 
-        if (novoButton) {
-            novoButton.addEventListener('click', () => {
-                novoMenu.classList.toggle('is-open');
-            });
-        }
+    <div class="grid">
+        <div class="field">
+            <label for="id_tipo_atendimento">Tipo de Atendimento</label>
+            {{ form.tipo_atendimento }}
+        </div>
+        <div class="field">
+            <label for="id_perfil_pessoa_atendida">Perfil da Pessoa Atendida</label>
+            {{ form.perfil_pessoa_atendida }}
+        </div>
+    </div>
 
-        toggleButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                const target = document.getElementById(button.dataset.target);
-                if (target) target.classList.toggle('is-open');
-            });
-        });
+    <div class="grid">
+        <div class="field">
+            <label for="id_motivo_procura">Motivo da procura/atendimento?</label>
+            {{ form.motivo_procura }}
+        </div>
+    </div>
 
-        if (userMenuToggle) {
-            userMenuToggle.addEventListener('click', () => {
-                userMenuDropdown.classList.toggle('is-open');
-            });
-        }
+    <div class="grid">
+        <div class="field">
+            <label for="id_objetivo_atendimento">Objetivo do Atendimento</label>
+            {{ form.objetivo_atendimento }}
+        </div>
+    </div>
 
-        // Autocomplete functionality
-        const nomePessoaAtendidaInput = document.getElementById('id_nome_pessoa_atendida');
-        const autocompleteList = document.getElementById('autocompleteList');
+    <div class="grid">
+        <div class="field">
+            <label for="id_profissional_responsavel">Profissional Responsável</label>
+            {{ form.profissional_responsavel }}
+        </div>
+        <div class="field">
+            <label for="id_outras_pessoas_participantes">Outras Pessoas Participantes</label>
+            {{ form.outras_pessoas_participantes }}
+        </div>
+    </div>
 
-        if (nomePessoaAtendidaInput) {
-            nomePessoaAtendidaInput.addEventListener('input', async (e) => {
-                const query = e.target.value.trim();
+    <div class="grid">
+        <div class="field">
+            <label for="id_descricao_atendimento">Descrição do Atendimento e Observações</label>
+            {{ form.descricao_atendimento }}
+        </div>
+    </div>
 
-                if (query.length < 2) {
+    <div class="actions">
+        <button type="submit" class="primary-button">Salvar</button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Autocomplete functionality
+    const nomePessoaAtendidaInput = document.getElementById('id_nome_pessoa_atendida');
+    const autocompleteList = document.getElementById('autocompleteList');
+
+    if (nomePessoaAtendidaInput) {
+        nomePessoaAtendidaInput.addEventListener('input', async (e) => {
+            const query = e.target.value.trim();
+
+            if (query.length < 2) {
+                autocompleteList.classList.remove('show');
+                autocompleteList.innerHTML = '';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/agendamentos/buscar?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                autocompleteList.innerHTML = '';
+
+                if (data.results.length === 0) {
                     autocompleteList.classList.remove('show');
-                    autocompleteList.innerHTML = '';
                     return;
                 }
 
-                try {
-                    const response = await fetch(`/agendamentos/buscar?q=${encodeURIComponent(query)}`);
-                    const data = await response.json();
-
-                    autocompleteList.innerHTML = '';
-
-                    if (data.results.length === 0) {
+                data.results.forEach((result) => {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.textContent = result.text;
+                    item.addEventListener('click', () => {
+                        nomePessoaAtendidaInput.value = result.text;
                         autocompleteList.classList.remove('show');
-                        return;
-                    }
-
-                    data.results.forEach((result) => {
-                        const item = document.createElement('div');
-                        item.className = 'autocomplete-item';
-                        item.textContent = result.text;
-                        item.addEventListener('click', () => {
-                            nomePessoaAtendidaInput.value = result.text;
-                            autocompleteList.classList.remove('show');
-                            autocompleteList.innerHTML = '';
-                        });
-                        autocompleteList.appendChild(item);
+                        autocompleteList.innerHTML = '';
                     });
+                    autocompleteList.appendChild(item);
+                });
 
-                    autocompleteList.classList.add('show');
-                } catch (error) {
-                    console.error('Erro ao buscar:', error);
-                }
-            });
+                autocompleteList.classList.add('show');
+            } catch (error) {
+                console.error('Erro ao buscar:', error);
+            }
+        });
 
-            document.addEventListener('click', (e) => {
-                if (e.target !== nomePessoaAtendidaInput && e.target !== autocompleteList) {
-                    autocompleteList.classList.remove('show');
-                }
-            });
-        }
-    </script>
-    <script src="{% static 'core/main_search.js' %}"></script>
-</body>
-</html>
+        document.addEventListener('click', (e) => {
+            if (e.target !== nomePessoaAtendidaInput && e.target !== autocompleteList) {
+                autocompleteList.classList.remove('show');
+            }
+        });
+    }
+</script>
+{% endblock %}

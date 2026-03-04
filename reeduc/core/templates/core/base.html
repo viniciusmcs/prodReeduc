@@ -1,0 +1,147 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}ESPI{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'core/layout.css' %}" />
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="app">
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar__top">
+                <a class="sidebar__brand" href="/home/">
+                    <span class="sidebar__brand-icon material-icons-outlined">school</span>
+                    <span class="sidebar__brand-text">ESPI</span>
+                </a>
+                <button class="sidebar__collapse-btn" id="sidebarCollapseBtn" title="Recolher menu">
+                    <span class="material-icons-outlined">menu</span>
+                </button>
+            </div>
+
+            <nav class="sidebar__nav">
+                <a class="nav-item {% block nav_home %}{% endblock %}" href="/home/">
+                    <span class="material-icons-outlined">home</span>
+                    <span class="nav-item__text">Início</span>
+                </a>
+
+                <div class="nav-group">
+                    <button class="nav-item nav-item--toggle {% block nav_cadastros %}{% endblock %}" type="button" data-target="cadastros-sub">
+                        <span class="material-icons-outlined">people</span>
+                        <span class="nav-item__text">Cadastros</span>
+                        <span class="nav-item__arrow material-icons-outlined">expand_more</span>
+                    </button>
+                    <div class="nav-sub" id="cadastros-sub">
+                        <a class="nav-sub__item" href="/home/cadastro/adicionar">Adicionar Cadastro</a>
+                        <a class="nav-sub__item" href="/home/cadastros">Lista de Cadastros</a>
+                        <a class="nav-sub__item" href="/home/cadastros/ativos">Ativos</a>
+                        <a class="nav-sub__item" href="/home/cadastros/arquivados">Arquivados</a>
+                    </div>
+                </div>
+
+                <a class="nav-item {% block nav_agendamentos %}{% endblock %}" href="/agendamentos">
+                    <span class="material-icons-outlined">calendar_today</span>
+                    <span class="nav-item__text">Agendamentos</span>
+                </a>
+
+                <a class="nav-item {% block nav_atendimentos %}{% endblock %}" href="/home/atendimentos">
+                    <span class="material-icons-outlined">assignment</span>
+                    <span class="nav-item__text">Atendimentos</span>
+                </a>
+
+                <a class="nav-item {% block nav_familiares %}{% endblock %}" href="/familiares">
+                    <span class="material-icons-outlined">family_restroom</span>
+                    <span class="nav-item__text">Familiares</span>
+                </a>
+
+                <a class="nav-item {% block nav_atividades %}{% endblock %}" href="/atividades/minhasatividades">
+                    <span class="material-icons-outlined">checklist</span>
+                    <span class="nav-item__text">Atividades</span>
+                </a>
+
+                <a class="nav-item {% block nav_relatorios %}{% endblock %}" href="/relatorios">
+                    <span class="material-icons-outlined">assessment</span>
+                    <span class="nav-item__text">Relatórios</span>
+                </a>
+
+                {% if request.user.is_staff %}
+                <div class="nav-group">
+                    <button class="nav-item nav-item--toggle {% block nav_admin %}{% endblock %}" type="button" data-target="admin-sub">
+                        <span class="material-icons-outlined">admin_panel_settings</span>
+                        <span class="nav-item__text">Administração</span>
+                        <span class="nav-item__arrow material-icons-outlined">expand_more</span>
+                    </button>
+                    <div class="nav-sub" id="admin-sub">
+                        <a class="nav-sub__item" href="/administrar/usuarios">Gerenciar Usuários</a>
+                        <a class="nav-sub__item" href="/administrar/adicionarUsuario">Adicionar Usuário</a>
+                    </div>
+                </div>
+                {% endif %}
+            </nav>
+
+            <!-- Quick-add floating button -->
+            <div class="sidebar__bottom">
+                <button class="quick-add-btn" id="quickAddBtn">
+                    <span class="material-icons-outlined">add</span>
+                    <span class="nav-item__text">Novo</span>
+                </button>
+                <div class="quick-add-menu" id="quickAddMenu">
+                    <a href="/home/cadastro/adicionar"><span class="material-icons-outlined">person_add</span> Cadastro</a>
+                    <a href="/atendimentos/adicionar"><span class="material-icons-outlined">post_add</span> Atendimento</a>
+                    <a href="/agendamentos/adicionar"><span class="material-icons-outlined">event</span> Agendamento</a>
+                    <a href="/familiares/adicionar"><span class="material-icons-outlined">group_add</span> Familiar</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ===== MAIN ===== -->
+        <div class="main">
+            <!-- Top bar -->
+            <header class="topbar">
+                <button class="topbar__mobile-toggle" id="mobileToggle">
+                    <span class="material-icons-outlined">menu</span>
+                </button>
+                <div class="topbar__search">
+                    <span class="material-icons-outlined topbar__search-icon">search</span>
+                    <input type="text" placeholder="Buscar cadastro..." autocomplete="off" />
+                </div>
+                <div class="topbar__right">
+                    <div class="topbar__user" id="userMenuToggle">
+                        <div class="topbar__avatar">
+                            {{ request.user.username|make_list|first|upper }}
+                        </div>
+                        <span class="topbar__username">{{ request.user.username }}</span>
+                        <span class="material-icons-outlined topbar__chevron">expand_more</span>
+                    </div>
+                    <div class="topbar__dropdown" id="userMenuDropdown">
+                        <div class="topbar__dropdown-header">
+                            <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+                            <small>{{ request.user.email|default:"" }}</small>
+                        </div>
+                        <div class="topbar__dropdown-body">
+                            <a href="/usuario/perfil/{{ request.user.username }}"><span class="material-icons-outlined">person</span> Meu Perfil</a>
+                            <a href="/atividades/minhasatividades"><span class="material-icons-outlined">list_alt</span> Minhas Atividades</a>
+                        </div>
+                        <div class="topbar__dropdown-footer">
+                            <a href="/sair"><span class="material-icons-outlined">logout</span> Sair</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page content -->
+            <section class="content">
+                {% block content %}{% endblock %}
+            </section>
+        </div>
+    </div>
+
+    <script src="{% static 'core/app.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

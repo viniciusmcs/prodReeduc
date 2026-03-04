@@ -1,149 +1,85 @@
+{% extends "core/base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Atendimentos</title>
-    <link rel="stylesheet" href="{% static 'core/home.css' %}" />
-    <link rel="stylesheet" href="{% static 'core/cadastro.css' %}" />
-</head>
-<body>
-    <div class="layout">
-        <aside class="sidebar">
-            <a class="brand" href="/home/">ESPI</a>
-            <button class="new-button" id="novoButton">
-                <span class="icon">+</span>
-                <span>Novo</span>
-            </button>
-            <div class="new-menu" id="novoMenu">
-                <a href="/home/cadastro/adicionar">Cadastro</a>
-                <a href="/atendimentos/adicionar">Atendimento</a>
-                <a href="/agendamentos/adicionar">Agendamento</a>
-            </div>
-            <nav class="menu">
-                <div class="menu-group">
-                    <button class="menu__item menu__item--toggle" type="button" data-target="cadastros-submenu">
-                        Cadastros
-                        <span class="caret">▾</span>
-                    </button>
-                    <div class="submenu" id="cadastros-submenu">
-                        <a class="submenu__item" href="/home/cadastros">Todos</a>
-                        <a class="submenu__item" href="/home/cadastros/ativos">Ativos</a>
-                        <a class="submenu__item" href="/home/cadastros/arquivados">Arquivados</a>
-                        <a class="submenu__item" href="/home/cadastros/familiares">Familiares</a>
-                    </div>
-                </div>
-                <a class="menu__item" href="/agendamentos">Agendamentos</a>
-                <a class="menu__item" href="/home/atendimentos">Atendimentos</a>
-                <a class="menu__item" href="/familiares/adicionar">Familiar</a>
-                <a class="menu__item" href="/atividades/minhasatividades">Atividades</a>
-            </nav>
-        </aside>
 
-        <div class="main">
-            <header class="topbar">
-                <div class="search">
-                    <input type="text" placeholder="buscar..." />
-                    <span class="search__icon">🔍</span>
-                </div>
-                <div class="user-menu" id="userMenu">
-                    <div class="avatar" id="userMenuToggle">👤</div>
-                    <div class="user-menu__dropdown" id="userMenuDropdown">
-                        <div class="user-menu__title">Usuário</div>
-                        <a href="/usuario/perfil/{{ request.user.username }}">Meu Perfil</a>
-                        <a href="/atividades/minhasatividades">Minhas Atividades</a>
-                        <a href="/sair">Sair</a>
-                        {% if request.user.is_staff %}
-                        <div class="user-menu__title">Admin</div>
-                        <a href="/administrar/usuarios">Gerenciar Usuários</a>
-                        <a href="/administrar/adicionarUsuario">Adicionar Usuário</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </header>
+{% block title %}Atendimentos{% endblock %}
 
-            <section class="content">
-                <div class="activities-header">
-                    <h1>Atendimentos</h1>
-                    <span class="badge">{{ total }}</span>
-                </div>
+{% block nav_atendimentos %}active{% endblock %}
 
-                <div class="links-row">
-                    <a href="/home/atendimentos/adicionar">Criar novo atendimento</a>
-                </div>
+{% block content %}
+<div class="activities-header">
+    <h1>Atendimentos</h1>
+    <span class="badge">{{ total }}</span>
+</div>
 
-                <section class="table-card">
-                    <div class="table-card__header">
-                        <h2>Filtrar</h2>
-                        <span class="caret">▾</span>
-                    </div>
-                    <div class="table-card__body">
-                        <form class="grid" method="get">
-                            <div class="field">
-                                <label for="q">Buscar por nome</label>
-                                <input type="text" id="q" name="q" placeholder="Buscar por nome..." value="{{ query }}" />
-                            </div>
-                            <div class="field">
-                                <label for="data">Desde esta data</label>
-                                <input type="date" id="data" name="data" value="{{ data }}" />
-                            </div>
-                            <div class="field">
-                                <label for="status">Status</label>
-                                <select id="status" name="status">
-                                    <option value="">Status</option>
-                                    <option value="pendente" {% if status == 'pendente' %}selected{% endif %}>Pendente</option>
-                                    <option value="realizado" {% if status == 'realizado' %}selected{% endif %}>Realizado</option>
-                                </select>
-                            </div>
-                            <div class="field" style="align-self: end;">
-                                <button type="submit" class="primary-button">Aplicar</button>
-                            </div>
-                        </form>
-                    </div>
-                </section>
+<div class="links-row">
+    <a href="/home/atendimentos/adicionar">Criar novo atendimento</a>
+</div>
 
-                <section class="table-card">
-                    <div class="table-card__header">
-                        <h2>Lista de Atendimentos</h2>
-                    </div>
-                    <div class="table-card__body">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nome</th>
-                                    <th>Data</th>
-                                    <th>Tipo</th>
-                                    <th>Status</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for atendimento in atendimentos %}
-                                <tr>
-                                    <td>{{ atendimento.nome_pessoa_atendida }}</td>
-                                    <td>{{ atendimento.data_atendimento|date:"d/m/Y" }}</td>
-                                    <td>{{ atendimento.get_tipo_atendimento_display|default:"-" }}</td>
-                                    <td>{{ atendimento.get_status_display }}</td>
-                                    <td>
-                                        <a href="/atendimentos/{{ atendimento.id }}/ver" title="Ver">👁️</a>
-                                        <a href="/atendimentos/{{ atendimento.id }}/editar" title="Editar" style="margin-left: 6px;">✏️</a>
-                                        <a href="/atendimentos/{{ atendimento.id }}/excluir" title="Excluir" style="margin-left: 6px;">🗑️</a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="5">Nenhum atendimento encontrado.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            </section>
-        </div>
+<section class="table-card">
+    <div class="table-card__header">
+        <h2>Filtrar</h2>
+        <span class="caret">▾</span>
     </div>
+    <div class="table-card__body">
+        <form class="grid" method="get">
+            <div class="field">
+                <label for="q">Buscar por nome</label>
+                <input type="text" id="q" name="q" placeholder="Buscar por nome..." value="{{ query }}" />
+            </div>
+            <div class="field">
+                <label for="data">Desde esta data</label>
+                <input type="date" id="data" name="data" value="{{ data }}" />
+            </div>
+            <div class="field">
+                <label for="status">Status</label>
+                <select id="status" name="status">
+                    <option value="">Status</option>
+                    <option value="pendente" {% if status == 'pendente' %}selected{% endif %}>Pendente</option>
+                    <option value="realizado" {% if status == 'realizado' %}selected{% endif %}>Realizado</option>
+                </select>
+            </div>
+            <div class="field" style="align-self: end;">
+                <button type="submit" class="primary-button">Aplicar</button>
+            </div>
+        </form>
+    </div>
+</section>
 
-    <script src="{% static 'core/main_search.js' %}"></script>
-</body>
-</html>
+<section class="table-card">
+    <div class="table-card__header">
+        <h2>Lista de Atendimentos</h2>
+    </div>
+    <div class="table-card__body">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Data</th>
+                    <th>Tipo</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for atendimento in atendimentos %}
+                <tr>
+                    <td>{{ atendimento.nome_pessoa_atendida }}</td>
+                    <td>{{ atendimento.data_atendimento|date:"d/m/Y" }}</td>
+                    <td>{{ atendimento.get_tipo_atendimento_display|default:"-" }}</td>
+                    <td>{{ atendimento.get_status_display }}</td>
+                    <td>
+                        <a href="/atendimentos/{{ atendimento.id }}/ver" title="Ver">👁️</a>
+                        <a href="/atendimentos/{{ atendimento.id }}/editar" title="Editar" style="margin-left: 6px;">✏️</a>
+                        <a href="/atendimentos/{{ atendimento.id }}/excluir" title="Excluir" style="margin-left: 6px;">🗑️</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">Nenhum atendimento encontrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

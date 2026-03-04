@@ -1,70 +1,10 @@
+{% extends "core/base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Editar Agendamento</title>
-    <link rel="stylesheet" href="{% static 'core/home.css' %}" />
-    <link rel="stylesheet" href="{% static 'core/cadastro.css' %}" />
-    <link rel="stylesheet" href="{% static 'core/agendamento.css' %}" />
-</head>
-<body>
-    <div class="layout">
-        <aside class="sidebar">
-            <a class="brand" href="/home/">ESPI</a>
-            <button class="new-button" id="novoButton">
-                <span class="icon">+</span>
-                <span>Novo</span>
-            </button>
-            <div class="new-menu" id="novoMenu">
-                <a href="/home/cadastro/adicionar">Cadastro</a>
-                <a href="/atendimentos/adicionar">Atendimento</a>
-                <a href="/agendamentos/adicionar">Agendamento</a>
-            </div>
-            <nav class="menu">
-                <div class="menu-group">
-                    <button class="menu__item menu__item--toggle" type="button" data-target="cadastros-submenu">
-                        Cadastros
-                        <span class="caret">▾</span>
-                    </button>
-                    <div class="submenu" id="cadastros-submenu">
-                        <a class="submenu__item" href="/home/cadastros">Todos</a>
-                        <a class="submenu__item" href="/home/cadastros/ativos">Ativos</a>
-                        <a class="submenu__item" href="/home/cadastros/arquivados">Arquivados</a>
-                        <a class="submenu__item" href="/home/cadastros/familiares">Familiares</a>
-                    </div>
-                </div>
-                <a class="menu__item" href="/agendamentos">Agendamentos</a>
-                <a class="menu__item" href="/home/atendimentos">Atendimentos</a>
-                <a class="menu__item" href="/familiares/adicionar">Familiar</a>
-                <a class="menu__item" href="/atividades/minhasatividades">Atividades</a>
-            </nav>
-        </aside>
 
-        <div class="main">
-            <header class="topbar">
-                <div class="search">
-                    <input type="text" placeholder="buscar..." />
-                    <span class="search__icon">🔍</span>
-                </div>
-                <div class="user-menu" id="userMenu">
-                    <div class="avatar" id="userMenuToggle">👤</div>
-                    <div class="user-menu__dropdown" id="userMenuDropdown">
-                        <div class="user-menu__title">Usuário</div>
-                        <a href="/usuario/perfil/{{ request.user.username }}">Meu Perfil</a>
-                        <a href="/atividades/minhasatividades">Minhas Atividades</a>
-                        <a href="/sair">Sair</a>
-                        {% if request.user.is_staff %}
-                        <div class="user-menu__title">Admin</div>
-                        <a href="/administrar/usuarios">Gerenciar Usuários</a>
-                        <a href="/administrar/adicionarUsuario">Adicionar Usuário</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </header>
+{% block title %}Editar Agendamento{% endblock %}
+{% block nav_agendamentos %}active{% endblock %}
 
-            <section class="content">
+{% block content %}
                 <h1>Editar Agendamento</h1>
 
                 <form method="post" class="form">
@@ -110,49 +50,4 @@
                         <a href="/agendamentos" class="ghost-button">Cancelar</a>
                     </div>
                 </form>
-            </section>
-        </div>
-    </div>
-
-    <script>
-        const novoButton = document.getElementById('novoButton');
-        const novoMenu = document.getElementById('novoMenu');
-        const toggleButtons = document.querySelectorAll('.menu__item--toggle');
-        const userMenuToggle = document.getElementById('userMenuToggle');
-        const userMenuDropdown = document.getElementById('userMenuDropdown');
-
-        if (novoButton) {
-            novoButton.addEventListener('click', () => {
-                novoMenu.classList.toggle('is-open');
-            });
-        }
-
-        toggleButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                const target = button.getAttribute('data-target');
-                const submenu = document.getElementById(target);
-                if (submenu) {
-                    submenu.classList.toggle('is-open');
-                    button.classList.toggle('is-active');
-                }
-            });
-        });
-
-        if (userMenuToggle) {
-            userMenuToggle.addEventListener('click', () => {
-                userMenuDropdown.classList.toggle('is-open');
-            });
-        }
-
-        document.addEventListener('click', (e) => {
-            if (!userMenuToggle.contains(e.target) && !userMenuDropdown.contains(e.target)) {
-                userMenuDropdown.classList.remove('is-open');
-            }
-            if (novoButton && !novoButton.contains(e.target) && !novoMenu.contains(e.target)) {
-                novoMenu.classList.remove('is-open');
-            }
-        });
-    </script>
-    <script src="{% static 'core/main_search.js' %}"></script>
-</body>
-</html>
+{% endblock %}

@@ -1,290 +1,231 @@
+{% extends "core/base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Editar Familiar</title>
-    <link rel="stylesheet" href="{% static 'core/home.css' %}" />
-    <link rel="stylesheet" href="{% static 'core/cadastro.css' %}" />
-    <style>
-        .form-section {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
 
-        .form-section h2 {
-            margin: 0 0 12px;
-            font-size: 14px;
-            font-weight: 600;
-        }
+{% block title %}Editar Familiar{% endblock %}
+{% block nav_cadastros %}active{% endblock %}
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
+{% block extra_css %}
+<style>
+    .form-section {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
+    .form-section h2 {
+        margin: 0 0 12px;
+        font-size: 14px;
+        font-weight: 600;
+    }
 
-        .form-group label {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
 
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 13px;
-            font-family: inherit;
-        }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
 
-        .form-group textarea {
-            min-height: 60px;
-            resize: vertical;
-        }
+    .form-group label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
 
-        #id_documentos_possui,
-        #id_documentos_ausentes {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 8px 16px;
-        }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 13px;
+        font-family: inherit;
+    }
 
-        #id_documentos_possui li,
-        #id_documentos_ausentes li {
-            margin: 0;
-        }
+    .form-group textarea {
+        min-height: 60px;
+        resize: vertical;
+    }
 
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-        }
+    #id_documentos_possui,
+    #id_documentos_ausentes {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 8px 16px;
+    }
 
-        .form-full-width {
-            grid-column: 1 / -1;
-        }
+    #id_documentos_possui li,
+    #id_documentos_ausentes li {
+        margin: 0;
+    }
 
-        .form-errors {
-            background: #fee;
-            border: 1px solid #fcc;
-            border-radius: 6px;
-            padding: 12px;
-            color: #c00;
-            font-size: 13px;
-            margin-bottom: 16px;
-        }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+    }
 
-        .form-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="layout">
-        <aside class="sidebar">
-            <a class="brand" href="/home/">ESPI</a>
-            <button class="new-button" id="novoButton">
-                <span class="icon">+</span>
-                <span>Novo</span>
-            </button>
-            <div class="new-menu" id="novoMenu">
-                <a href="/home/cadastro/adicionar">Cadastro</a>
-                <a href="/atendimentos/adicionar">Atendimento</a>
-                <a href="/agendamentos/adicionar">Agendamento</a>
-            </div>
-            <nav class="menu">
-                <div class="menu-group">
-                    <button class="menu__item menu__item--toggle" type="button" data-target="cadastros-submenu">
-                        Cadastros
-                        <span class="caret">▾</span>
-                    </button>
-                    <div class="submenu" id="cadastros-submenu">
-                        <a class="submenu__item" href="/home/cadastros">Todos</a>
-                        <a class="submenu__item" href="/home/cadastros/ativos">Ativos</a>
-                        <a class="submenu__item" href="/home/cadastros/arquivados">Arquivados</a>
-                        <a class="submenu__item" href="/home/cadastros/familiares">Familiares</a>
-                    </div>
-                </div>
-                <a class="menu__item" href="/agendamentos">Agendamentos</a>
-                <a class="menu__item" href="/home/atendimentos">Atendimentos</a>
-                <a class="menu__item" href="/familiares/adicionar">Familiar</a>
-                <a class="menu__item" href="/atividades/minhasatividades">Atividades</a>
-            </nav>
-        </aside>
+    .form-full-width {
+        grid-column: 1 / -1;
+    }
 
-        <div class="main">
-            <header class="topbar">
-                <div class="search">
-                    <input type="text" placeholder="buscar..." />
-                    <span class="search__icon">🔍</span>
-                </div>
-                <div class="user-menu" id="userMenu">
-                    <div class="avatar" id="userMenuToggle">👤</div>
-                    <div class="user-menu__dropdown" id="userMenuDropdown">
-                        <div class="user-menu__title">Usuário</div>
-                        <a href="/usuario/perfil/{{ request.user.username }}">Meu Perfil</a>
-                        <a href="/atividades/minhasatividades">Minhas Atividades</a>
-                        <a href="/sair">Sair</a>
-                        {% if request.user.is_staff %}
-                        <div class="user-menu__title">Admin</div>
-                        <a href="/administrar/usuarios">Gerenciar Usuários</a>
-                        <a href="/administrar/adicionarUsuario">Adicionar Usuário</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </header>
+    .form-errors {
+        background: #fee;
+        border: 1px solid #fcc;
+        border-radius: 6px;
+        padding: 12px;
+        color: #c00;
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
 
-            <section class="content">
-                <h1>Editar Familiar - {{ familiar.nome }}</h1>
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
 
-                <form method="post" class="form">
-                    {% csrf_token %}
-                    {% if form.errors %}
-                    <div class="form-errors">
-                        <strong>Verifique os campos abaixo:</strong>
-                        {{ form.non_field_errors }}
-                    </div>
-                    {% endif %}
+{% block content %}
+<h1>Editar Familiar - {{ familiar.nome }}</h1>
 
-                    <section class="form-section">
-                        <h2>Dados pessoais</h2>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="id_nome">Nome</label>
-                                {{ form.nome }}
-                            </div>
-                            <div class="form-group">
-                                <label for="id_nome_social">Nome social</label>
-                                {{ form.nome_social }}
-                            </div>
-                            <div class="form-group">
-                                <label for="id_data_nascimento">Data de nascimento</label>
-                                {{ form.data_nascimento }}
-                            </div>
-                            <div class="form-group">
-                                <label for="id_sexo_biologico">Sexo biológico</label>
-                                {{ form.sexo_biologico }}
-                            </div>
-                            <div class="form-group">
-                                <label for="id_identidade_etnico_racial">Identidade étnico-racial</label>
-                                {{ form.identidade_etnico_racial }}
-                            </div>
-                            <div class="form-group">
-                                <label for="id_pessoa_transexual">Pessoa transexual</label>
-                                {{ form.pessoa_transexual }}
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="form-section">
-                        <h2>Documentos</h2>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="id_cpf_numero">CPF</label>
-                                {{ form.cpf_numero }}
-                            </div>
-                            <div class="form-group">
-                                <label for="id_nis_numero">NIS</label>
-                                {{ form.nis_numero }}
-                            </div>
-                            <div class="form-group form-full-width">
-                                <label for="id_documentos_possui">Documentos que possui</label>
-                                {{ form.documentos_possui }}
-                            </div>
-                            <div class="form-group form-full-width">
-                                <label for="id_documentos_ausentes">Documentos ausentes</label>
-                                {{ form.documentos_ausentes }}
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="form-section">
-                        <h2>Contato</h2>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="id_parentesco">Parentesco</label>
-                                {{ form.parentesco }}
-                            </div>
-                            <div class="form-group">
-                                <label for="id_bairro">Bairro</label>
-                                {{ form.bairro }}
-                            </div>
-                            <div class="form-group">
-                                <label for="id_telefone_numero">Telefone</label>
-                                {{ form.telefone_numero }}
-                            </div>
-                            <div class="form-group">
-                                <label for="id_telefone_contato">Contato</label>
-                                {{ form.telefone_contato }}
-                            </div>
-                            <div class="form-group">
-                                <label for="id_telefone_observacao">Observações do telefone</label>
-                                {{ form.telefone_observacao }}
-                            </div>
-                            <div class="form-group">
-                                <label for="id_email_contato">E-mail</label>
-                                {{ form.email_contato }}
-                            </div>
-                        </div>
-                    </section>
-                    <div class="form-actions">
-                        <button type="submit" class="primary-button">Salvar</button>
-                        <a class="ghost-button" href="/cadastro/familiares/{{ familiar.cadastro_id }}">Cancelar</a>
-                    </div>
-                </form>
-            </section>
-        </div>
+<form method="post" class="form">
+    {% csrf_token %}
+    {% if form.errors %}
+    <div class="form-errors">
+        <strong>Verifique os campos abaixo:</strong>
+        {{ form.non_field_errors }}
     </div>
+    {% endif %}
 
-    <script>
-        const onlyDigits = (value) => value.replace(/\D/g, '');
-        const formatCpf = (value) => {
-            let v = onlyDigits(value).slice(0, 11);
-            v = v.replace(/(\d{3})(\d)/, '$1.$2');
-            v = v.replace(/(\d{3})(\d)/, '$1.$2');
-            v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-            return v;
-        };
-        const formatNis = (value) => {
-            let v = onlyDigits(value).slice(0, 11);
-            v = v.replace(/(\d{3})(\d)/, '$1.$2');
-            v = v.replace(/(\d{3})\.(\d{5})(\d)/, '$1.$2.$3');
-            v = v.replace(/(\d{3})\.(\d{5})\.(\d{2})(\d{1})$/, '$1.$2.$3-$4');
-            return v;
-        };
-        const applyMask = (id, formatter) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            const handler = () => {
-                el.value = formatter(el.value);
-            };
-            el.addEventListener('input', handler);
-            handler();
-        };
+    <section class="form-section">
+        <h2>Dados pessoais</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="id_nome">Nome</label>
+                {{ form.nome }}
+            </div>
+            <div class="form-group">
+                <label for="id_nome_social">Nome social</label>
+                {{ form.nome_social }}
+            </div>
+            <div class="form-group">
+                <label for="id_data_nascimento">Data de nascimento</label>
+                {{ form.data_nascimento }}
+            </div>
+            <div class="form-group">
+                <label for="id_sexo_biologico">Sexo biológico</label>
+                {{ form.sexo_biologico }}
+            </div>
+            <div class="form-group">
+                <label for="id_identidade_etnico_racial">Identidade étnico-racial</label>
+                {{ form.identidade_etnico_racial }}
+            </div>
+            <div class="form-group">
+                <label for="id_pessoa_transexual">Pessoa transexual</label>
+                {{ form.pessoa_transexual }}
+            </div>
+        </div>
+    </section>
 
-        applyMask('id_cpf_numero', formatCpf);
-        applyMask('id_nis_numero', formatNis);
-    </script>
-    <script src="{% static 'core/main_search.js' %}"></script>
-</body>
-</html>
+    <section class="form-section">
+        <h2>Documentos</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="id_cpf_numero">CPF</label>
+                {{ form.cpf_numero }}
+            </div>
+            <div class="form-group">
+                <label for="id_nis_numero">NIS</label>
+                {{ form.nis_numero }}
+            </div>
+            <div class="form-group form-full-width">
+                <label for="id_documentos_possui">Documentos que possui</label>
+                {{ form.documentos_possui }}
+            </div>
+            <div class="form-group form-full-width">
+                <label for="id_documentos_ausentes">Documentos ausentes</label>
+                {{ form.documentos_ausentes }}
+            </div>
+        </div>
+    </section>
+
+    <section class="form-section">
+        <h2>Contato</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="id_parentesco">Parentesco</label>
+                {{ form.parentesco }}
+            </div>
+            <div class="form-group">
+                <label for="id_bairro">Bairro</label>
+                {{ form.bairro }}
+            </div>
+            <div class="form-group">
+                <label for="id_telefone_numero">Telefone</label>
+                {{ form.telefone_numero }}
+            </div>
+            <div class="form-group">
+                <label for="id_telefone_contato">Contato</label>
+                {{ form.telefone_contato }}
+            </div>
+            <div class="form-group">
+                <label for="id_telefone_observacao">Observações do telefone</label>
+                {{ form.telefone_observacao }}
+            </div>
+            <div class="form-group">
+                <label for="id_email_contato">E-mail</label>
+                {{ form.email_contato }}
+            </div>
+        </div>
+    </section>
+    <div class="form-actions">
+        <button type="submit" class="primary-button">Salvar</button>
+        <a class="ghost-button" href="/cadastro/familiares/{{ familiar.cadastro_id }}">Cancelar</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const onlyDigits = (value) => value.replace(/\D/g, '');
+    const formatCpf = (value) => {
+        let v = onlyDigits(value).slice(0, 11);
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        return v;
+    };
+    const formatNis = (value) => {
+        let v = onlyDigits(value).slice(0, 11);
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})\.(\d{5})(\d)/, '$1.$2.$3');
+        v = v.replace(/(\d{3})\.(\d{5})\.(\d{2})(\d{1})$/, '$1.$2.$3-$4');
+        return v;
+    };
+    const applyMask = (id, formatter) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const handler = () => {
+            el.value = formatter(el.value);
+        };
+        el.addEventListener('input', handler);
+        handler();
+    };
+
+    applyMask('id_cpf_numero', formatCpf);
+    applyMask('id_nis_numero', formatNis);
+</script>
+{% endblock %}

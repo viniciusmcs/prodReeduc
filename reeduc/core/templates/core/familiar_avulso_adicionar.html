@@ -1,283 +1,200 @@
+{% extends "core/base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Cadastrar Familiar</title>
-    <link rel="stylesheet" href="{% static 'core/home.css' %}" />
-    <link rel="stylesheet" href="{% static 'core/cadastro.css' %}" />
-</head>
-<body>
-    <div class="layout">
-        <aside class="sidebar">
-            <a class="brand" href="/home/">ESPI</a>
-            <button class="new-button" id="novoButton">
-                <span class="icon">+</span>
-                <span>Novo</span>
-            </button>
-            <div class="new-menu" id="novoMenu">
-                <a href="/home/cadastro/adicionar">Cadastro</a>
-                <a href="/atendimentos/adicionar">Atendimento</a>
-                <a href="/agendamentos/adicionar">Agendamento</a>
-                <a href="/familiares/adicionar">Familiar</a>
+
+{% block title %}Adicionar Familiar{% endblock %}
+{% block nav_familiares %}active{% endblock %}
+
+{% block content %}
+<h1>Cadastrar Familiar sem vínculo</h1>
+
+<div class="modal-dialog" style="max-width: 100%; margin: 0;">
+    <div class="modal-content" style="padding: 16px; background: #fff; border: 1px solid var(--border); border-radius: 10px;">
+        <form method="post" enctype="multipart/form-data" class="form">
+            {% csrf_token %}
+            {% if form.errors %}
+            <div class="form-errors" style="margin-bottom: 12px;">
+                <strong>Verifique os campos abaixo:</strong>
+                {{ form.non_field_errors }}
             </div>
-            <nav class="menu">
-                <div class="menu-group">
-                    <button class="menu__item menu__item--toggle" type="button" data-target="cadastros-submenu">
-                        Cadastros
-                        <span class="caret">▾</span>
-                    </button>
-                    <div class="submenu" id="cadastros-submenu">
-                        <a class="submenu__item" href="/home/cadastros">Todos</a>
-                        <a class="submenu__item" href="/home/cadastros/ativos">Ativos</a>
-                        <a class="submenu__item" href="/home/cadastros/arquivados">Arquivados</a>
-                        <a class="submenu__item" href="/familiares">Familiares</a>
-                    </div>
+            {% endif %}
+            <div class="grid">
+                <div class="field">
+                    <label for="id_nome">Nome</label>
+                    {{ form.nome }}
+                    {{ form.nome.errors }}
                 </div>
-                <a class="menu__item" href="/agendamentos">Agendamentos</a>
-                <a class="menu__item" href="/home/atendimentos">Atendimentos</a>
-                <a class="menu__item" href="/familiares/adicionar">Familiar</a>
-                <a class="menu__item" href="/atividades/minhasatividades">Atividades</a>
-            </nav>
-        </aside>
-
-        <div class="main">
-            <header class="topbar">
-                <div class="search">
-                    <input type="text" placeholder="buscar..." />
-                    <span class="search__icon">🔍</span>
+                <div class="field">
+                    <label for="id_nome_social">Nome social</label>
+                    {{ form.nome_social }}
+                    {{ form.nome_social.errors }}
                 </div>
-                <div class="user-menu" id="userMenu">
-                    <div class="avatar" id="userMenuToggle">👤</div>
-                    <div class="user-menu__dropdown" id="userMenuDropdown">
-                        <div class="user-menu__title">Usuário</div>
-                        <a href="/usuario/perfil/{{ request.user.username }}">Meu Perfil</a>
-                        <a href="/atividades/minhasatividades">Minhas Atividades</a>
-                        <a href="/sair">Sair</a>
-                    </div>
+            </div>
+
+            <div class="grid">
+                <div class="field">
+                    <label for="id_data_nascimento">Data de nascimento</label>
+                    {{ form.data_nascimento }}
+                    {{ form.data_nascimento.errors }}
                 </div>
-            </header>
-
-            <section class="content">
-                <h1>Cadastrar Familiar sem vínculo</h1>
-
-                <div class="modal-dialog" style="max-width: 100%; margin: 0;">
-                    <div class="modal-content" style="padding: 16px; background: #fff; border: 1px solid var(--border); border-radius: 10px;">
-                        <form method="post" enctype="multipart/form-data" class="form">
-                            {% csrf_token %}
-                            {% if form.errors %}
-                            <div class="form-errors" style="margin-bottom: 12px;">
-                                <strong>Verifique os campos abaixo:</strong>
-                                {{ form.non_field_errors }}
-                            </div>
-                            {% endif %}
-                            <div class="grid">
-                                <div class="field">
-                                    <label for="id_nome">Nome</label>
-                                    {{ form.nome }}
-                                    {{ form.nome.errors }}
-                                </div>
-                                <div class="field">
-                                    <label for="id_nome_social">Nome social</label>
-                                    {{ form.nome_social }}
-                                    {{ form.nome_social.errors }}
-                                </div>
-                            </div>
-
-                            <div class="grid">
-                                <div class="field">
-                                    <label for="id_data_nascimento">Data de nascimento</label>
-                                    {{ form.data_nascimento }}
-                                    {{ form.data_nascimento.errors }}
-                                </div>
-                                <div class="field">
-                                    <label for="id_sexo_biologico">Sexo biológico</label>
-                                    {{ form.sexo_biologico }}
-                                    {{ form.sexo_biologico.errors }}
-                                </div>
-                                <div class="field">
-                                    <label for="id_identidade_etnico_racial">Identidade étnico-racial</label>
-                                    {{ form.identidade_etnico_racial }}
-                                    {{ form.identidade_etnico_racial.errors }}
-                                </div>
-                            </div>
-
-                            <div class="grid">
-                                <div class="field switch">
-                                    <label for="id_pessoa_transexual">Pessoa transexual</label>
-                                    {{ form.pessoa_transexual }}
-                                    {{ form.pessoa_transexual.errors }}
-                                </div>
-                            </div>
-
-                            <div class="grid">
-                                <div class="field">
-                                    <label for="id_parentesco">Parentesco</label>
-                                    {{ form.parentesco }}
-                                    {{ form.parentesco.errors }}
-                                </div>
-                                <div class="field switch">
-                                    <label for="id_perfil_referencia_egresso">Interno é egresso?</label>
-                                    {{ form.perfil_referencia_egresso }}
-                                    {{ form.perfil_referencia_egresso.errors }}
-                                </div>
-                                <div class="field switch">
-                                    <label for="id_perfil_referencia_pre_egresso">Interno é pré-egresso?</label>
-                                    {{ form.perfil_referencia_pre_egresso }}
-                                    {{ form.perfil_referencia_pre_egresso.errors }}
-                                </div>
-                            </div>
-
-                            <div class="grid">
-                                <div class="field">
-                                    <label for="id_nome_interno_referencia">Nome do interno da família</label>
-                                    {{ form.nome_interno_referencia }}
-                                    {{ form.nome_interno_referencia.errors }}
-                                </div>
-                            </div>
-
-                            <div class="grid">
-                                <div class="field">
-                                    <label for="id_cpf_numero">CPF</label>
-                                    {{ form.cpf_numero }}
-                                    {{ form.cpf_numero.errors }}
-                                </div>
-                                <div class="field">
-                                    <label for="id_nis_numero">NIS</label>
-                                    {{ form.nis_numero }}
-                                    {{ form.nis_numero.errors }}
-                                </div>
-                            </div>
-
-                            <div class="grid">
-                                <div class="field">
-                                    <label for="id_documentos_possui">Documentação que possui</label>
-                                    {{ form.documentos_possui }}
-                                    {{ form.documentos_possui.errors }}
-                                </div>
-                                <div class="field">
-                                    <label for="id_documentos_ausentes">Documentação ausente</label>
-                                    {{ form.documentos_ausentes }}
-                                    {{ form.documentos_ausentes.errors }}
-                                </div>
-                            </div>
-
-                            <div class="grid">
-                                <div class="field">
-                                    <label for="id_bairro">Bairro</label>
-                                    {{ form.bairro }}
-                                    {{ form.bairro.errors }}
-                                </div>
-                                <div class="field">
-                                    <label for="id_telefone_numero">Telefone</label>
-                                    {{ form.telefone_numero }}
-                                    {{ form.telefone_numero.errors }}
-                                </div>
-                                <div class="field">
-                                    <label for="id_telefone_contato">Contato</label>
-                                    {{ form.telefone_contato }}
-                                    {{ form.telefone_contato.errors }}
-                                </div>
-                            </div>
-
-                            <div class="grid">
-                                <div class="field">
-                                    <label for="id_telefone_observacao">Observação telefone</label>
-                                    {{ form.telefone_observacao }}
-                                    {{ form.telefone_observacao.errors }}
-                                </div>
-                                <div class="field">
-                                    <label for="id_email_contato">E-mail</label>
-                                    {{ form.email_contato }}
-                                    {{ form.email_contato.errors }}
-                                </div>
-                                <div class="field">
-                                    <label for="id_foto">Foto</label>
-                                    {{ form.foto }}
-                                    {{ form.foto.errors }}
-                                </div>
-                            </div>
-
-                            <div class="actions">
-                                <button type="submit" class="primary-button">Salvar</button>
-                                <a class="ghost-button" href="/familiares">Cancelar</a>
-                            </div>
-                        </form>
-                    </div>
+                <div class="field">
+                    <label for="id_sexo_biologico">Sexo biológico</label>
+                    {{ form.sexo_biologico }}
+                    {{ form.sexo_biologico.errors }}
                 </div>
-            </section>
-        </div>
+                <div class="field">
+                    <label for="id_identidade_etnico_racial">Identidade étnico-racial</label>
+                    {{ form.identidade_etnico_racial }}
+                    {{ form.identidade_etnico_racial.errors }}
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="field switch">
+                    <label for="id_pessoa_transexual">Pessoa transexual</label>
+                    {{ form.pessoa_transexual }}
+                    {{ form.pessoa_transexual.errors }}
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="field">
+                    <label for="id_parentesco">Parentesco</label>
+                    {{ form.parentesco }}
+                    {{ form.parentesco.errors }}
+                </div>
+                <div class="field switch">
+                    <label for="id_perfil_referencia_egresso">Interno é egresso?</label>
+                    {{ form.perfil_referencia_egresso }}
+                    {{ form.perfil_referencia_egresso.errors }}
+                </div>
+                <div class="field switch">
+                    <label for="id_perfil_referencia_pre_egresso">Interno é pré-egresso?</label>
+                    {{ form.perfil_referencia_pre_egresso }}
+                    {{ form.perfil_referencia_pre_egresso.errors }}
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="field">
+                    <label for="id_nome_interno_referencia">Nome do interno da família</label>
+                    {{ form.nome_interno_referencia }}
+                    {{ form.nome_interno_referencia.errors }}
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="field">
+                    <label for="id_cpf_numero">CPF</label>
+                    {{ form.cpf_numero }}
+                    {{ form.cpf_numero.errors }}
+                </div>
+                <div class="field">
+                    <label for="id_nis_numero">NIS</label>
+                    {{ form.nis_numero }}
+                    {{ form.nis_numero.errors }}
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="field">
+                    <label for="id_documentos_possui">Documentação que possui</label>
+                    {{ form.documentos_possui }}
+                    {{ form.documentos_possui.errors }}
+                </div>
+                <div class="field">
+                    <label for="id_documentos_ausentes">Documentação ausente</label>
+                    {{ form.documentos_ausentes }}
+                    {{ form.documentos_ausentes.errors }}
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="field">
+                    <label for="id_bairro">Bairro</label>
+                    {{ form.bairro }}
+                    {{ form.bairro.errors }}
+                </div>
+                <div class="field">
+                    <label for="id_telefone_numero">Telefone</label>
+                    {{ form.telefone_numero }}
+                    {{ form.telefone_numero.errors }}
+                </div>
+                <div class="field">
+                    <label for="id_telefone_contato">Contato</label>
+                    {{ form.telefone_contato }}
+                    {{ form.telefone_contato.errors }}
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="field">
+                    <label for="id_telefone_observacao">Observação telefone</label>
+                    {{ form.telefone_observacao }}
+                    {{ form.telefone_observacao.errors }}
+                </div>
+                <div class="field">
+                    <label for="id_email_contato">E-mail</label>
+                    {{ form.email_contato }}
+                    {{ form.email_contato.errors }}
+                </div>
+                <div class="field">
+                    <label for="id_foto">Foto</label>
+                    {{ form.foto }}
+                    {{ form.foto.errors }}
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="primary-button">Salvar</button>
+                <a class="ghost-button" href="/familiares">Cancelar</a>
+            </div>
+        </form>
     </div>
+</div>
+{% endblock %}
 
-    <script>
-        const onlyDigits = (value) => value.replace(/\D/g, '');
-        const formatCpf = (value) => {
-            let v = onlyDigits(value).slice(0, 11);
-            v = v.replace(/(\d{3})(\d)/, '$1.$2');
-            v = v.replace(/(\d{3})(\d)/, '$1.$2');
-            v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-            return v;
+{% block extra_js %}
+<script>
+    const onlyDigits = (value) => value.replace(/\D/g, '');
+    const formatCpf = (value) => {
+        let v = onlyDigits(value).slice(0, 11);
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        return v;
+    };
+    const applyMask = (id, formatter) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const handler = () => {
+            el.value = formatter(el.value);
         };
-        const applyMask = (id, formatter) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            const handler = () => {
-                el.value = formatter(el.value);
-            };
-            el.addEventListener('input', handler);
-            handler();
-        };
+        el.addEventListener('input', handler);
+        handler();
+    };
 
-        applyMask('id_cpf_numero', formatCpf);
+    applyMask('id_cpf_numero', formatCpf);
 
-        const checkboxEgresso = document.getElementById('id_perfil_referencia_egresso');
-        const checkboxPreEgresso = document.getElementById('id_perfil_referencia_pre_egresso');
-        const formEl = document.querySelector('form.form');
+    const checkboxEgresso = document.getElementById('id_perfil_referencia_egresso');
+    const checkboxPreEgresso = document.getElementById('id_perfil_referencia_pre_egresso');
+    const formEl = document.querySelector('form.form');
 
-        if (checkboxEgresso && checkboxPreEgresso) {
-            checkboxEgresso.addEventListener('change', () => {
-                if (checkboxEgresso.checked) checkboxPreEgresso.checked = false;
-            });
-            checkboxPreEgresso.addEventListener('change', () => {
-                if (checkboxPreEgresso.checked) checkboxEgresso.checked = false;
-            });
-        }
-
-        if (formEl && checkboxEgresso && checkboxPreEgresso) {
-            formEl.addEventListener('submit', (event) => {
-                if (!checkboxEgresso.checked && !checkboxPreEgresso.checked) {
-                    event.preventDefault();
-                    alert('Selecione uma opção: Egresso ou Pré-egresso.');
-                }
-            });
-        }
-
-        const novoButton = document.getElementById('novoButton');
-        const novoMenu = document.getElementById('novoMenu');
-        const toggleButtons = document.querySelectorAll('.menu__item--toggle');
-        const userMenuToggle = document.getElementById('userMenuToggle');
-        const userMenuDropdown = document.getElementById('userMenuDropdown');
-
-        if (novoButton) {
-            novoButton.addEventListener('click', () => {
-                novoMenu.classList.toggle('is-open');
-            });
-        }
-
-        toggleButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                const target = document.getElementById(button.dataset.target);
-                if (target) target.classList.toggle('is-open');
-            });
+    if (checkboxEgresso && checkboxPreEgresso) {
+        checkboxEgresso.addEventListener('change', () => {
+            if (checkboxEgresso.checked) checkboxPreEgresso.checked = false;
         });
+        checkboxPreEgresso.addEventListener('change', () => {
+            if (checkboxPreEgresso.checked) checkboxEgresso.checked = false;
+        });
+    }
 
-        if (userMenuToggle) {
-            userMenuToggle.addEventListener('click', () => {
-                userMenuDropdown.classList.toggle('is-open');
-            });
-        }
-    </script>
-    <script src="{% static 'core/main_search.js' %}"></script>
-</body>
-</html>
+    if (formEl && checkboxEgresso && checkboxPreEgresso) {
+        formEl.addEventListener('submit', (event) => {
+            if (!checkboxEgresso.checked && !checkboxPreEgresso.checked) {
+                event.preventDefault();
+                alert('Selecione uma opção: Egresso ou Pré-egresso.');
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,149 +1,92 @@
+{% extends "core/base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Ver Agendamento</title>
-    <link rel="stylesheet" href="{% static 'core/home.css' %}" />
-    <link rel="stylesheet" href="{% static 'core/cadastro.css' %}" />
-    <link rel="stylesheet" href="{% static 'core/cadastro_perfil.css' %}" />
-    <style>
-        .view-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
 
-        .view-header h1 {
-            margin: 0;
-            font-size: 22px;
-            font-weight: 700;
-        }
+{% block title %}Ver Agendamento{% endblock %}
+{% block nav_agendamentos %}active{% endblock %}
 
-        .view-badge {
-            padding: 6px 12px;
-            border-radius: 999px;
-            background: #eef2ff;
-            color: #1d4ed8;
-            font-size: 13px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
+{% block extra_css %}
+<style>
+    .view-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
 
-        .detail-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 4fr));
-            gap: 20px 150px;
-            align-items: center;
-        }
+    .view-header h1 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+    }
 
-        .detail-item {
-            display: grid;
-            gap: 4px;
-        }
+    .view-badge {
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #eef2ff;
+        color: #1d4ed8;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
 
-        .detail-item strong {
-            font-size: 12px;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
-        }
+    .detail-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 4fr));
+        gap: 20px 150px;
+        align-items: center;
+    }
 
-        .detail-item span {
-            font-size: 14px;
-            color: #111827;
-        }
+    .detail-item {
+        display: grid;
+        gap: 4px;
+    }
 
-        .detail-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+    .detail-item strong {
+        font-size: 12px;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
 
-        .observacoes {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 14px 16px;
-            margin-top: 16px;
-        }
+    .detail-item span {
+        font-size: 14px;
+        color: #111827;
+    }
 
-        .observacoes strong {
-            display: block;
-            margin-bottom: 6px;
-            color: #111827;
-        }
+    .detail-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
 
-        .primary-button {
-            padding: 5px 8px;
-            border-radius: 10px;
-            border: none;
-            background: var(--primary);
-            color: #fff;
-            font-weight: 600;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-    <div class="layout">
-        <aside class="sidebar">
-            <a class="brand" href="/home/">ESPI</a>
-            <button class="new-button" id="novoButton">
-                <span class="icon">+</span>
-                <span>Novo</span>
-            </button>
-            <div class="new-menu" id="novoMenu">
-                <a href="/home/cadastro/adicionar">Cadastro</a>
-                <a href="/atendimentos/adicionar">Atendimento</a>
-                <a href="/agendamentos/adicionar">Agendamento</a>
-            </div>
-            <nav class="menu">
-                <div class="menu-group">
-                    <button class="menu__item menu__item--toggle" type="button" data-target="cadastros-submenu">
-                        Cadastros
-                        <span class="caret">▾</span>
-                    </button>
-                    <div class="submenu" id="cadastros-submenu">
-                        <a class="submenu__item" href="/home/cadastros">Todos</a>
-                        <a class="submenu__item" href="/home/cadastros/ativos">Ativos</a>
-                        <a class="submenu__item" href="/home/cadastros/arquivados">Arquivados</a>
-                        <a class="submenu__item" href="/home/cadastros/familiares">Familiares</a>
-                    </div>
-                </div>
-                <a class="menu__item" href="/agendamentos">Agendamentos</a>
-                <a class="menu__item" href="/home/atendimentos">Atendimentos</a>
-                <a class="menu__item" href="/familiares/adicionar">Familiar</a>
-                <a class="menu__item" href="/atividades/minhasatividades">Atividades</a>
-            </nav>
-        </aside>
+    .observacoes {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-top: 16px;
+    }
 
-        <div class="main">
-            <header class="topbar">
-                <div class="search">
-                    <input type="text" placeholder="buscar..." />
-                    <span class="search__icon">🔍</span>
-                </div>
-                <div class="user-menu" id="userMenu">
-                    <div class="avatar" id="userMenuToggle">👤</div>
-                    <div class="user-menu__dropdown" id="userMenuDropdown">
-                        <div class="user-menu__title">Usuário</div>
-                        <a href="/usuario/perfil/{{ request.user.username }}">Meu Perfil</a>
-                        <a href="/atividades/minhasatividades">Minhas Atividades</a>
-                        <a href="/sair">Sair</a>
-                        {% if request.user.is_staff %}
-                        <div class="user-menu__title">Admin</div>
-                        <a href="/administrar/usuarios">Gerenciar Usuários</a>
-                        <a href="/administrar/adicionarUsuario">Adicionar Usuário</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </header>
+    .observacoes strong {
+        display: block;
+        margin-bottom: 6px;
+        color: #111827;
+    }
 
-            <section class="content">
+    .primary-button {
+        padding: 5px 8px;
+        border-radius: 10px;
+        border: none;
+        background: var(--primary);
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
                 <div class="view-header">
                     <h1>Agendamento {{ agendamento.id }}</h1>
                     <span class="view-badge">{{ agendamento.nome_atendido }}</span>
@@ -182,50 +125,4 @@
                         </div>
                     </div>
                 </section>
-
-            </section>
-        </div>
-    </div>
-
-    <script>
-        const novoButton = document.getElementById('novoButton');
-        const novoMenu = document.getElementById('novoMenu');
-        const toggleButtons = document.querySelectorAll('.menu__item--toggle');
-        const userMenuToggle = document.getElementById('userMenuToggle');
-        const userMenuDropdown = document.getElementById('userMenuDropdown');
-
-        if (novoButton) {
-            novoButton.addEventListener('click', () => {
-                novoMenu.classList.toggle('is-open');
-            });
-        }
-
-        toggleButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                const target = button.getAttribute('data-target');
-                const submenu = document.getElementById(target);
-                if (submenu) {
-                    submenu.classList.toggle('is-open');
-                    button.classList.toggle('is-active');
-                }
-            });
-        });
-
-        if (userMenuToggle) {
-            userMenuToggle.addEventListener('click', () => {
-                userMenuDropdown.classList.toggle('is-open');
-            });
-        }
-
-        document.addEventListener('click', (e) => {
-            if (!userMenuToggle.contains(e.target) && !userMenuDropdown.contains(e.target)) {
-                userMenuDropdown.classList.remove('is-open');
-            }
-            if (novoButton && !novoButton.contains(e.target) && !novoMenu.contains(e.target)) {
-                novoMenu.classList.remove('is-open');
-            }
-        });
-    </script>
-    <script src="{% static 'core/main_search.js' %}"></script>
-</body>
-</html>
+{% endblock %}

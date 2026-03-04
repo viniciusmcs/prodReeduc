@@ -1,257 +1,155 @@
+{% extends "core/base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Ver Atendimento</title>
-    <link rel="stylesheet" href="{% static 'core/home.css' %}" />
-    <link rel="stylesheet" href="{% static 'core/cadastro.css' %}" />
-    <link rel="stylesheet" href="{% static 'core/cadastro_perfil.css' %}" />
-    <style>
-        .view-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
 
-        .view-header h1 {
-            margin: 0;
-            font-size: 22px;
-            font-weight: 700;
-        }
+{% block title %}Ver Atendimento{% endblock %}
 
-        .view-badge {
-            padding: 6px 12px;
-            border-radius: 999px;
-            background: #eef2ff;
-            color: #1d4ed8;
-            font-size: 13px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
+{% block nav_atendimentos %}active{% endblock %}
 
-        .detail-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 4fr));
-            gap: 20px 150px;
-            align-items: center;
-        }
+{% block extra_css %}
+<style>
+    .view-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
 
-        .detail-item {
-            display: grid;
-            gap: 4px;
-        }
+    .view-header h1 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+    }
 
-        .detail-item strong {
-            font-size: 12px;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
-        }
+    .view-badge {
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #eef2ff;
+        color: #1d4ed8;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
 
-        .detail-item span {
-            font-size: 14px;
-            color: #111827;
-        }
+    .detail-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 4fr));
+        gap: 20px 150px;
+        align-items: center;
+    }
 
-        .detail-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+    .detail-item {
+        display: grid;
+        gap: 4px;
+    }
 
-        .observacoes {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 14px 16px;
-            margin-top: 16px;
-        }
+    .detail-item strong {
+        font-size: 12px;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
 
-        .observacoes strong {
-            display: block;
-            margin-bottom: 6px;
-            color: #111827;
-        }
-    </style>
-</head>
-<body>
-    <div class="layout">
-        <aside class="sidebar">
-            <a class="brand" href="/home/">ESPI</a>
-            <button class="new-button" id="novoButton">
-                <span class="icon">+</span>
-                <span>Novo</span>
-            </button>
-            <div class="new-menu" id="novoMenu">
-                <a href="/home/cadastro/adicionar">Cadastro</a>
-                <a href="/atendimentos/adicionar">Atendimento</a>
-                <a href="/agendamentos/adicionar">Agendamento</a>
+    .detail-item span {
+        font-size: 14px;
+        color: #111827;
+    }
+
+    .detail-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .observacoes {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-top: 16px;
+    }
+
+    .observacoes strong {
+        display: block;
+        margin-bottom: 6px;
+        color: #111827;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="view-header">
+    <h1>Atendimento {{ atendimento.id }}</h1>
+    <span class="view-badge">{{ atendimento.nome_pessoa_atendida }}</span>
+</div>
+
+<section class="table-card">
+    <div class="table-card__body" style="padding: 20px 30px 20px;">
+        <div class="detail-list">
+            <div class="detail-item">
+                <strong>Nome da Pessoa Atendida</strong>
+                <span>{{ atendimento.nome_pessoa_atendida }}</span>
             </div>
-            <nav class="menu">
-                <div class="menu-group">
-                    <button class="menu__item menu__item--toggle" type="button" data-target="cadastros-submenu">
-                        Cadastros
-                        <span class="caret">▾</span>
-                    </button>
-                    <div class="submenu" id="cadastros-submenu">
-                        <a class="submenu__item" href="/home/cadastros">Todos</a>
-                        <a class="submenu__item" href="/home/cadastros/ativos">Ativos</a>
-                        <a class="submenu__item" href="/home/cadastros/arquivados">Arquivados</a>
-                        <a class="submenu__item" href="/home/cadastros/familiares">Familiares</a>
-                    </div>
+            <div class="detail-item">
+                <strong>Data do Atendimento</strong>
+                <span>{{ atendimento.data_atendimento|date:"d/m/Y" }}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Tipo de Atendimento</strong>
+                <span>{{ atendimento.get_tipo_atendimento_display|default:"-" }}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Perfil da Pessoa Atendida</strong>
+                <span>{{ atendimento.get_perfil_pessoa_atendida_display|default:"-" }}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Onde ocorreu o atendimento</strong>
+                <span>{{ atendimento.get_local_atendimento_display|default:"-" }}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Motivo ou Assunto do Atendimento</strong>
+                <span>{{ atendimento.get_motivo_procura_display|default:"-" }}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Objetivo do Atendimento</strong>
+                <span>{{ atendimento.objetivo_atendimento|default:"-" }}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Profissional Responsável</strong>
+                <span>{{ atendimento.profissional_responsavel|default:"-" }}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Outras Pessoas Participantes</strong>
+                <span>{{ atendimento.outras_pessoas_participantes|default:"-" }}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Status</strong>
+                <span>
+                    {% if atendimento.status == "pendente" %}
+                        ⚠️ {{ atendimento.get_status_display }}
+                    {% elif atendimento.status == "realizado" %}
+                        ✔️ {{ atendimento.get_status_display }}
+                    {% else %}
+                        {{ atendimento.get_status_display }}
+                    {% endif %}
+                </span>
+            </div>
+            <div class="detail-item">
+                <strong>Ações</strong>
+                <div class="detail-actions">
+                    <a class="primary-button" href="/atendimentos/{{ atendimento.id }}/editar" style="background: transparent; border: 1px solid #555555; color: #000000;">✏️ Editar Atendimento</a>
+                    <form method="post" action="/atendimentos/{{ atendimento.id }}/realizar" style="margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" class="primary-button" style="background: transparent; border: 1px solid #555555; color: #000000;">✔️ Realizar Atendimento</button>
+                    </form>
                 </div>
-                <a class="menu__item" href="/agendamentos">Agendamentos</a>
-                <a class="menu__item" href="/home/atendimentos">Atendimentos</a>
-                <a class="menu__item" href="/familiares/adicionar">Familiar</a>
-                <a class="menu__item" href="/atividades/minhasatividades">Atividades</a>
-            </nav>
-        </aside>
+            </div>
+        </div>
 
-        <div class="main">
-            <header class="topbar">
-                <div class="search">
-                    <input type="text" placeholder="buscar..." />
-                    <span class="search__icon">🔍</span>
-                </div>
-                <div class="user-menu" id="userMenu">
-                    <div class="avatar" id="userMenuToggle">👤</div>
-                    <div class="user-menu__dropdown" id="userMenuDropdown">
-                        <div class="user-menu__title">Usuário</div>
-                        <a href="/usuario/perfil/{{ request.user.username }}">Meu Perfil</a>
-                        <a href="/atividades/minhasatividades">Minhas Atividades</a>
-                        <a href="/sair">Sair</a>
-                        {% if request.user.is_staff %}
-                        <div class="user-menu__title">Admin</div>
-                        <a href="/administrar/usuarios">Gerenciar Usuários</a>
-                        <a href="/administrar/adicionarUsuario">Adicionar Usuário</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </header>
-
-            <section class="content">
-                <div class="view-header">
-                    <h1>Atendimento {{ atendimento.id }}</h1>
-                    <span class="view-badge">{{ atendimento.nome_pessoa_atendida }}</span>
-                </div>
-
-                <section class="table-card">
-                    <div class="table-card__body" style="padding: 20px 30px 20px;">
-                        <div class="detail-list">
-                            <div class="detail-item">
-                                <strong>Nome da Pessoa Atendida</strong>
-                                <span>{{ atendimento.nome_pessoa_atendida }}</span>
-                            </div>
-                            <div class="detail-item">
-                                <strong>Data do Atendimento</strong>
-                                <span>{{ atendimento.data_atendimento|date:"d/m/Y" }}</span>
-                            </div>
-                            <div class="detail-item">
-                                <strong>Tipo de Atendimento</strong>
-                                <span>{{ atendimento.get_tipo_atendimento_display|default:"-" }}</span>
-                            </div>
-                            <div class="detail-item">
-                                <strong>Perfil da Pessoa Atendida</strong>
-                                <span>{{ atendimento.get_perfil_pessoa_atendida_display|default:"-" }}</span>
-                            </div>
-                            <div class="detail-item">
-                                <strong>Onde ocorreu o atendimento</strong>
-                                <span>{{ atendimento.get_local_atendimento_display|default:"-" }}</span>
-                            </div>
-                            <div class="detail-item">
-                                <strong>Motivo ou Assunto do Atendimento</strong>
-                                <span>{{ atendimento.get_motivo_procura_display|default:"-" }}</span>
-                            </div>
-                            <div class="detail-item">
-                                <strong>Objetivo do Atendimento</strong>
-                                <span>{{ atendimento.objetivo_atendimento|default:"-" }}</span>
-                            </div>
-                            <div class="detail-item">
-                                <strong>Profissional Responsável</strong>
-                                <span>{{ atendimento.profissional_responsavel|default:"-" }}</span>
-                            </div>
-                            <div class="detail-item">
-                                <strong>Outras Pessoas Participantes</strong>
-                                <span>{{ atendimento.outras_pessoas_participantes|default:"-" }}</span>
-                            </div>
-                            <div class="detail-item">
-                                <strong>Status</strong>
-                                <span>
-                                    {% if atendimento.status == "pendente" %}
-                                        ⚠️ {{ atendimento.get_status_display }}
-                                    {% elif atendimento.status == "realizado" %}
-                                        ✔️ {{ atendimento.get_status_display }}
-                                    {% else %}
-                                        {{ atendimento.get_status_display }}
-                                    {% endif %}
-                                </span>
-                            </div>
-                            <div class="detail-item">
-                                <strong>Ações</strong>
-                                <div class="detail-actions">
-                                    <a class="primary-button" href="/atendimentos/{{ atendimento.id }}/editar" style="background: transparent; border: 1px solid #555555; color: #000000;">✏️ Editar Atendimento</a>
-                                    <form method="post" action="/atendimentos/{{ atendimento.id }}/realizar" style="margin: 0;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="primary-button" style="background: transparent; border: 1px solid #555555; color: #000000;">✔️ Realizar Atendimento</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="observacoes">
-                            <strong>Observações</strong>
-                            <span>{{ atendimento.descricao_atendimento|default:"-" }}</span>
-                        </div>
-                    </div>
-                </section>
-
-            </section>
+        <div class="observacoes">
+            <strong>Observações</strong>
+            <span>{{ atendimento.descricao_atendimento|default:"-" }}</span>
         </div>
     </div>
-
-    <script>
-        const novoButton = document.getElementById('novoButton');
-        const novoMenu = document.getElementById('novoMenu');
-        const toggleButtons = document.querySelectorAll('.menu__item--toggle');
-        const userMenuToggle = document.getElementById('userMenuToggle');
-        const userMenuDropdown = document.getElementById('userMenuDropdown');
-
-        if (novoButton) {
-            novoButton.addEventListener('click', () => {
-                novoMenu.classList.toggle('is-open');
-            });
-        }
-
-        toggleButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                const target = button.getAttribute('data-target');
-                const submenu = document.getElementById(target);
-                if (submenu) {
-                    submenu.classList.toggle('is-open');
-                    button.classList.toggle('is-active');
-                }
-            });
-        });
-
-        if (userMenuToggle) {
-            userMenuToggle.addEventListener('click', () => {
-                userMenuDropdown.classList.toggle('is-open');
-            });
-        }
-
-        document.addEventListener('click', (e) => {
-            if (!userMenuToggle.contains(e.target) && !userMenuDropdown.contains(e.target)) {
-                userMenuDropdown.classList.remove('is-open');
-            }
-            if (novoButton && !novoButton.contains(e.target) && !novoMenu.contains(e.target)) {
-                novoMenu.classList.remove('is-open');
-            }
-        });
-    </script>
-    <script src="{% static 'core/main_search.js' %}"></script>
-</body>
-</html>
+</section>
+{% endblock %}

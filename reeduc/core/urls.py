@@ -61,4 +61,7 @@ urlpatterns = [
     path("administrar/usuarios/<int:user_id>/detalhes", views.admin_user_detail_view, name="admin-user-detail"),
     path("administrar/usuarios/<int:user_id>/toggle", views.admin_user_toggle_active_view, name="admin-user-toggle"),
     path("administrar/usuarios/<int:user_id>/excluir", views.admin_user_delete_view, name="admin-user-delete"),
+    # Relatórios
+    path("relatorios", views.relatorios_view, name="relatorios"),
+    path("relatorios/pdf", views.relatorios_pdf_view, name="relatorios-pdf"),
 ]

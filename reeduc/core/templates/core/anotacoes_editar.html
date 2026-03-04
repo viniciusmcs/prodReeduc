@@ -1,266 +1,179 @@
+{% extends "core/base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Editar Lembrete</title>
-    <link rel="stylesheet" href="{% static 'core/home.css' %}" />
-    <link rel="stylesheet" href="{% static 'core/cadastro.css' %}" />
-    <style>
-        .note-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
 
-        .note-title {
-            margin: 0;
-            font-size: 20px;
-            font-weight: 600;
-        }
+{% block title %}Editar Anotações{% endblock %}
 
-        .note-chip {
-            background: #eef3ff;
-            color: #2a4fb8;
-            border-radius: 999px;
-            padding: 6px 12px;
-            font-size: 12px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-        }
+{% block nav_atividades %}active{% endblock %}
 
-        .note-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            display: grid;
-            gap: 14px;
-        }
+{% block extra_css %}
+<style>
+    .note-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
 
-        .note-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
+    .note-title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+    }
 
-        .note-field {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
+    .note-chip {
+        background: #eef3ff;
+        color: #2a4fb8;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
 
-        .note-field label {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
+    .note-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        display: grid;
+        gap: 14px;
+    }
 
-        .note-field input,
-        .note-field select,
-        .note-field textarea {
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 10px 12px;
-            font-size: 13px;
-            background: #f7f8fb;
-            font-family: inherit;
-        }
+    .note-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
 
-        .note-field textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
+    .note-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
 
-        .note-full {
-            grid-column: 1 / -1;
-        }
+    .note-field label {
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
 
-        .note-actions {
-            display: flex;
-            justify-content: flex-start;
-            gap: 12px;
-            margin-top: 8px;
-        }
+    .note-field input,
+    .note-field select,
+    .note-field textarea {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 13px;
+        background: #f7f8fb;
+        font-family: inherit;
+    }
 
-        .primary-button {
-            background: #1a7f4b;
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 999px;
-            font-size: 13px;
-            cursor: pointer;
-        }
+    .note-field textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
 
-        .ghost-button {
-            background: transparent;
-            border: 1px solid var(--border);
-            padding: 10px 20px;
-            border-radius: 999px;
-            font-size: 13px;
-            text-decoration: none;
-            color: var(--text-primary);
-        }
+    .note-full {
+        grid-column: 1 / -1;
+    }
 
+    .note-actions {
+        display: flex;
+        justify-content: flex-start;
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .primary-button {
+        background: #1a7f4b;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 999px;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    .ghost-button {
+        background: transparent;
+        border: 1px solid var(--border);
+        padding: 10px 20px;
+        border-radius: 999px;
+        font-size: 13px;
+        text-decoration: none;
+        color: var(--text-primary);
+    }
+
+    .note-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    @media (max-width: 900px) {
+        .note-grid,
         .note-meta {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            grid-template-columns: 1fr;
         }
+    }
+</style>
+{% endblock %}
 
-        @media (max-width: 900px) {
-            .note-grid,
-            .note-meta {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="layout">
-        <aside class="sidebar">
-            <a class="brand" href="/home/">ESPI</a>
-            <button class="new-button" id="novoButton">
-                <span class="icon">+</span>
-                <span>Novo</span>
-            </button>
-            <div class="new-menu" id="novoMenu">
-                <a href="/home/cadastro/adicionar">Cadastro</a>
-                <a href="/atendimentos/adicionar">Atendimento</a>
-                <a href="/agendamentos/adicionar">Agendamento</a>
-            </div>
-            <nav class="menu">
-                <div class="menu-group">
-                    <button class="menu__item menu__item--toggle" type="button" data-target="cadastros-submenu">
-                        Cadastros
-                        <span class="caret">▾</span>
-                    </button>
-                    <div class="submenu" id="cadastros-submenu">
-                        <a class="submenu__item" href="/home/cadastros">Todos</a>
-                        <a class="submenu__item" href="/home/cadastros/ativos">Ativos</a>
-                        <a class="submenu__item" href="/home/cadastros/arquivados">Arquivados</a>
-                        <a class="submenu__item" href="/home/cadastros/familiares">Familiares</a>
-                    </div>
-                </div>
-                <a class="menu__item" href="/agendamentos">Agendamentos</a>
-                <a class="menu__item" href="/home/atendimentos">Atendimentos</a>
-                <a class="menu__item" href="/familiares/adicionar">Familiar</a>
-                <a class="menu__item" href="/atividades/minhasatividades">Atividades</a>
-            </nav>
-        </aside>
+{% block content %}
+<div class="note-header">
+    <h1 class="note-title">Editando o Lembrete</h1>
+    {% if cadastro %}
+    <span class="note-chip">
+        {{ cadastro.nome }}
+        {% if cadastro.numero_processo_pep %}
+        · PEP: {{ cadastro.numero_processo_pep }}
+        {% endif %}
+    </span>
+    {% endif %}
+</div>
 
-        <div class="main">
-            <header class="topbar">
-                <div class="search">
-                    <input type="text" placeholder="buscar..." />
-                    <span class="search__icon">🔍</span>
-                </div>
-                <div class="user-menu" id="userMenu">
-                    <div class="avatar" id="userMenuToggle">👤</div>
-                    <div class="user-menu__dropdown" id="userMenuDropdown">
-                        <div class="user-menu__title">Usuário</div>
-                        <a href="/usuario/perfil/{{ request.user.username }}">Meu Perfil</a>
-                        <a href="/atividades/minhasatividades">Minhas Atividades</a>
-                        <a href="/sair">Sair</a>
-                        {% if request.user.is_staff %}
-                        <div class="user-menu__title">Admin</div>
-                        <a href="/administrar/usuarios">Gerenciar Usuários</a>
-                        <a href="/administrar/adicionarUsuario">Adicionar Usuário</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </header>
+<form method="post" class="note-card">
+    {% csrf_token %}
 
-            <section class="content">
-                <div class="note-header">
-                    <h1 class="note-title">Editando o Lembrete</h1>
-                    {% if cadastro %}
-                    <span class="note-chip">
-                        {{ cadastro.nome }}
-                        {% if cadastro.numero_processo_pep %}
-                        · PEP: {{ cadastro.numero_processo_pep }}
-                        {% endif %}
-                    </span>
-                    {% endif %}
-                </div>
-
-                <form method="post" class="note-card">
-                    {% csrf_token %}
-
-                    <div class="note-grid">
-                        <div class="note-field">
-                            <label>Data de Criação</label>
-                            <input type="text" value="{% if lembrete %}{{ lembrete.data_criacao|date:'d/m/Y H:i' }}{% else %}-{% endif %}" readonly />
-                        </div>
-                        <div class="note-field">
-                            <label for="{{ form.urgencia.id_for_label }}">Nível de Urgência/Prioridade</label>
-                            {{ form.urgencia }}
-                        </div>
-                        <div class="note-field note-full">
-                            <label for="{{ form.titulo.id_for_label }}">Título do Lembrete</label>
-                            {{ form.titulo }}
-                        </div>
-                        <div class="note-field note-full">
-                            <label for="{{ form.anotacao.id_for_label }}">Anotação</label>
-                            {{ form.anotacao }}
-                        </div>
-                    </div>
-
-                    <div class="note-meta">
-                        <div class="note-field">
-                            <label>Quem criou o lembrete</label>
-                            <input type="text" value="{% if lembrete and lembrete.criado_por %}{{ lembrete.criado_por.get_username }}{% else %}-{% endif %}" readonly />
-                        </div>
-                        <div class="note-field">
-                            <label>Quem está atualizando</label>
-                            <input type="text" value="{{ request.user.get_username }}" readonly />
-                        </div>
-                    </div>
-
-                    <div class="note-actions">
-                        <button type="submit" class="primary-button">Salvar</button>
-                        {% if cadastro %}
-                        <a class="ghost-button" href="/cadastro/perfil/{{ cadastro.id }}">Cancelar</a>
-                        {% else %}
-                        <a class="ghost-button" href="/home/">Cancelar</a>
-                        {% endif %}
-                    </div>
-                </form>
-            </section>
+    <div class="note-grid">
+        <div class="note-field">
+            <label>Data de Criação</label>
+            <input type="text" value="{% if lembrete %}{{ lembrete.data_criacao|date:'d/m/Y H:i' }}{% else %}-{% endif %}" readonly />
+        </div>
+        <div class="note-field">
+            <label for="{{ form.urgencia.id_for_label }}">Nível de Urgência/Prioridade</label>
+            {{ form.urgencia }}
+        </div>
+        <div class="note-field note-full">
+            <label for="{{ form.titulo.id_for_label }}">Título do Lembrete</label>
+            {{ form.titulo }}
+        </div>
+        <div class="note-field note-full">
+            <label for="{{ form.anotacao.id_for_label }}">Anotação</label>
+            {{ form.anotacao }}
         </div>
     </div>
 
-    <script>
-        const novoButton = document.getElementById('novoButton');
-        const novoMenu = document.getElementById('novoMenu');
-        const toggleButtons = document.querySelectorAll('.menu__item--toggle');
-        const userMenuToggle = document.getElementById('userMenuToggle');
-        const userMenuDropdown = document.getElementById('userMenuDropdown');
+    <div class="note-meta">
+        <div class="note-field">
+            <label>Quem criou o lembrete</label>
+            <input type="text" value="{% if lembrete and lembrete.criado_por %}{{ lembrete.criado_por.get_username }}{% else %}-{% endif %}" readonly />
+        </div>
+        <div class="note-field">
+            <label>Quem está atualizando</label>
+            <input type="text" value="{{ request.user.get_username }}" readonly />
+        </div>
+    </div>
 
-        if (novoButton) {
-            novoButton.addEventListener('click', () => {
-                novoMenu.classList.toggle('is-open');
-            });
-        }
-
-        toggleButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                const target = document.getElementById(button.dataset.target);
-                if (target) target.classList.toggle('is-open');
-            });
-        });
-
-        if (userMenuToggle) {
-            userMenuToggle.addEventListener('click', () => {
-                userMenuDropdown.classList.toggle('is-open');
-            });
-        }
-    </script>
-    <script src="{% static 'core/main_search.js' %}"></script>
-</body>
-</html>
+    <div class="note-actions">
+        <button type="submit" class="primary-button">Salvar</button>
+        {% if cadastro %}
+        <a class="ghost-button" href="/cadastro/perfil/{{ cadastro.id }}">Cancelar</a>
+        {% else %}
+        <a class="ghost-button" href="/home/">Cancelar</a>
+        {% endif %}
+    </div>
+</form>
+{% endblock %}
