@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: reeduc-db
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: reeduc-web
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DJANGO_SETTINGS_MODULE: reeduc.settings_prod
+      USE_SQLITE: "False"
+      DB_ENGINE: django.db.backends.postgresql
+      DB_HOST: db
+      DB_PORT: "5432"
+      PORT: "8000"
+    expose:
+      - "8000"
+    volumes:
+      - reeduc_media:/app/media
+      - reeduc_static:/app/staticfiles
+
+  proxy:
+    image: nginx:1.27-alpine
+    container_name: reeduc-proxy
+    restart: unless-stopped
+    depends_on:
+      - web
+    ports:
+      - "8000:80"
+      - "8443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - reeduc_static:/app/staticfiles:ro
+      - reeduc_media:/app/media:ro
+
+volumes:
+  postgres_data:
+  reeduc_media:
+  reeduc_static:

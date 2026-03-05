@@ -384,11 +384,21 @@ def familiar_avulso_excluir_view(request, familiar_id: int):
 @login_required
 def cadastro_upload_foto_view(request, cadastro_id: int):
     """Handle photo upload for a cadastro."""
-    import json
     from django.http import JsonResponse
     
     cadastro = get_object_or_404(Cadastro, id=cadastro_id)
     
+    if request.method == "POST" and request.POST.get("remover_foto") == "1":
+        if cadastro.foto:
+            cadastro.foto.delete(save=False)
+        cadastro.foto = None
+        cadastro.save()
+        return JsonResponse({
+            "status": "success",
+            "message": "Foto removida com sucesso",
+            "foto_url": None,
+        })
+
     if request.method == "POST" and request.FILES.get("foto"):
         foto = request.FILES["foto"]
         

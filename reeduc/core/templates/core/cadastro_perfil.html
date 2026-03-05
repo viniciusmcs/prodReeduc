@@ -22,12 +22,59 @@
 
                 <section class="perfil-card">
                     <div class="perfil-grid">
-                        <div class="foto-placeholder" id="fotoPlaceholder" title="Clique para enviar uma foto">
-                            {% if cadastro.foto %}
-                                <img src="{{ cadastro.foto.url }}" alt="Foto do cadastro" style="width: 100%; height: 100%; object-fit: cover;">
-                            {% else %}
-                                <span>Clique para adicionar foto</span>
-                            {% endif %}
+                        <div class="foto-section perfil-foto-section">
+                            <div class="foto-placeholder" id="fotoPlaceholder" title="Foto do cadastro">
+                                {% if cadastro.foto %}
+                                    <img src="{{ cadastro.foto.url }}" alt="Foto do cadastro" style="width: 100%; height: 100%; object-fit: cover;">
+                                {% else %}
+                                    <span>Nenhuma foto</span>
+                                {% endif %}
+                            </div>
+                            <div class="webcam-container" id="webcamContainer" style="display:none;">
+                                <video id="webcamVideo" autoplay playsinline></video>
+                                <canvas id="webcamCanvas" style="display:none;"></canvas>
+                            </div>
+                            <div class="foto-buttons">
+                                <button type="button" class="foto-upload-btn" id="fotoUploadBtn">
+                                    <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">photo_camera</span>
+                                    Iniciar Webcam
+                                </button>
+                                {% if cadastro.foto %}
+                                <button type="button" class="foto-remove-btn" id="fotoRemoveBtn">
+                                    <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">delete</span>
+                                    Excluir Foto
+                                </button>
+                                {% endif %}
+                                <button type="button" class="foto-capture-btn" id="fotoCaptureBtn" style="display:none;">
+                                    <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">camera</span>
+                                    Capturar Foto
+                                </button>
+                                <button type="button" class="foto-cancel-btn" id="fotoCancelBtn" style="display:none;">
+                                    Cancelar
+                                </button>
+                            </div>
+                            <div class="webcam-modal-overlay" id="webcamModal" style="display:none;">
+                                <div class="webcam-modal">
+                                    <span class="material-icons-outlined" style="font-size:48px;color:var(--danger);margin-bottom:12px;">videocam_off</span>
+                                    <h4>Webcam não encontrada</h4>
+                                    <p>Não foi possível acessar a câmera do dispositivo. Deseja abrir o explorador de arquivos para selecionar uma foto?</p>
+                                    <div class="webcam-modal-actions">
+                                        <button type="button" class="primary-button" id="modalOpenFiles">Abrir Arquivos</button>
+                                        <button type="button" class="ghost-button" id="modalCancel">Cancelar</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="webcam-modal-overlay" id="deletePhotoModal" style="display:none;">
+                                <div class="webcam-modal">
+                                    <span class="material-icons-outlined" style="font-size:48px;color:var(--danger);margin-bottom:12px;">warning</span>
+                                    <h4>Excluir foto</h4>
+                                    <p>Tem certeza que deseja excluir a foto deste cadastro?</p>
+                                    <div class="webcam-modal-actions">
+                                        <button type="button" class="primary-button" id="deletePhotoConfirmBtn">Confirmar</button>
+                                        <button type="button" class="ghost-button" id="deletePhotoCancelBtn">Cancelar</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <input type="file" id="fotoInput" style="display: none;" accept="image/png,image/jpeg">
                         <div class="perfil-info">
@@ -313,17 +360,189 @@
         if (closeFamiliarModal) closeFamiliarModal.addEventListener('click', closeModal);
         if (cancelFamiliarModal) cancelFamiliarModal.addEventListener('click', closeModal);
 
-        // Foto upload functionality
+        // Foto upload/webcam functionality
         const fotoInput = document.getElementById('fotoInput');
         const fotoPlaceholder = document.getElementById('fotoPlaceholder');
+        const fotoUploadBtn = document.getElementById('fotoUploadBtn');
+        const fotoRemoveBtn = document.getElementById('fotoRemoveBtn');
+        const fotoCaptureBtn = document.getElementById('fotoCaptureBtn');
+        const fotoCancelBtn = document.getElementById('fotoCancelBtn');
+        const webcamContainer = document.getElementById('webcamContainer');
+        const webcamVideo = document.getElementById('webcamVideo');
+        const webcamCanvas = document.getElementById('webcamCanvas');
+        const webcamModal = document.getElementById('webcamModal');
+        const modalOpenFiles = document.getElementById('modalOpenFiles');
+        const modalCancel = document.getElementById('modalCancel');
+        const deletePhotoModal = document.getElementById('deletePhotoModal');
+        const deletePhotoConfirmBtn = document.getElementById('deletePhotoConfirmBtn');
+        const deletePhotoCancelBtn = document.getElementById('deletePhotoCancelBtn');
         const cadastroId = window.location.pathname.split('/')[3];
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? 
+            document.querySelector('[name=csrfmiddlewaretoken]').value : '';
+        let currentStream = null;
 
-        if (fotoPlaceholder) {
-            fotoPlaceholder.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (fotoInput) {
-                    fotoInput.click();
+        const renderPhoto = (fotoUrl = null) => {
+            if (fotoUrl) {
+                fotoPlaceholder.innerHTML = `<img src="${fotoUrl}?t=${Date.now()}" alt="Foto do cadastro" style="width: 100%; height: 100%; object-fit: cover;">`;
+            } else {
+                fotoPlaceholder.innerHTML = '<span>Nenhuma foto</span>';
+            }
+        };
+
+        const uploadPhotoFile = async (file) => {
+            const validTypes = ['image/png', 'image/jpeg'];
+            if (!validTypes.includes(file.type)) {
+                return false;
+            }
+
+            const formData = new FormData();
+            formData.append('foto', file);
+
+            try {
+                const response = await fetch(`/cadastro/${cadastroId}/foto`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': csrfToken }
+                });
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    if (data.foto_url) {
+                        renderPhoto(data.foto_url);
+                    }
+                    if (fotoRemoveBtn) fotoRemoveBtn.style.display = '';
+                    return true;
                 }
+                return false;
+            } catch (error) {
+                console.error('Erro:', error);
+                return false;
+            }
+        };
+
+        const removePhoto = async () => {
+            try {
+                const formData = new FormData();
+                formData.append('remover_foto', '1');
+                const response = await fetch(`/cadastro/${cadastroId}/foto`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': csrfToken }
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    renderPhoto(null);
+                    if (fotoRemoveBtn) fotoRemoveBtn.style.display = 'none';
+                    return;
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        };
+
+        const stopWebcam = () => {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+            webcamVideo.srcObject = null;
+            webcamContainer.style.display = 'none';
+            fotoCaptureBtn.style.display = 'none';
+            fotoCancelBtn.style.display = 'none';
+            fotoUploadBtn.style.display = '';
+            fotoPlaceholder.style.display = '';
+        };
+
+        const showModal = () => {
+            if (webcamModal) webcamModal.style.display = 'flex';
+        };
+
+        const hideModal = () => {
+            if (webcamModal) webcamModal.style.display = 'none';
+        };
+
+        const showDeletePhotoModal = () => {
+            if (deletePhotoModal) deletePhotoModal.style.display = 'flex';
+        };
+
+        const hideDeletePhotoModal = () => {
+            if (deletePhotoModal) deletePhotoModal.style.display = 'none';
+        };
+
+        if (fotoUploadBtn) {
+            fotoUploadBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
+                    });
+                    currentStream = stream;
+                    webcamVideo.srcObject = stream;
+                    webcamContainer.style.display = 'block';
+                    fotoPlaceholder.style.display = 'none';
+                    fotoUploadBtn.style.display = 'none';
+                    fotoCaptureBtn.style.display = '';
+                    fotoCancelBtn.style.display = '';
+                } catch (error) {
+                    console.warn('Webcam não disponível:', error);
+                    showModal();
+                }
+            });
+        }
+
+        if (fotoCaptureBtn) {
+            fotoCaptureBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const vw = webcamVideo.videoWidth;
+                const vh = webcamVideo.videoHeight;
+                webcamCanvas.width = vw;
+                webcamCanvas.height = vh;
+                const ctx = webcamCanvas.getContext('2d');
+                ctx.drawImage(webcamVideo, 0, 0, vw, vh);
+
+                webcamCanvas.toBlob(async (blob) => {
+                    const file = new File([blob], 'webcam_foto.jpg', { type: 'image/jpeg' });
+                    const ok = await uploadPhotoFile(file);
+                    if (ok) stopWebcam();
+                }, 'image/jpeg', 0.9);
+            });
+        }
+
+        if (fotoCancelBtn) {
+            fotoCancelBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                stopWebcam();
+            });
+        }
+
+        if (modalOpenFiles) {
+            modalOpenFiles.addEventListener('click', () => {
+                hideModal();
+                if (fotoInput) fotoInput.click();
+            });
+        }
+
+        if (modalCancel) {
+            modalCancel.addEventListener('click', () => hideModal());
+        }
+
+        if (fotoRemoveBtn) {
+            fotoRemoveBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                showDeletePhotoModal();
+            });
+        }
+
+        if (deletePhotoConfirmBtn) {
+            deletePhotoConfirmBtn.addEventListener('click', async () => {
+                hideDeletePhotoModal();
+                await removePhoto();
+            });
+        }
+
+        if (deletePhotoCancelBtn) {
+            deletePhotoCancelBtn.addEventListener('click', () => {
+                hideDeletePhotoModal();
             });
         }
 
@@ -331,50 +550,8 @@
             fotoInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
-
-                const validTypes = ['image/png', 'image/jpeg'];
-                if (!validTypes.includes(file.type)) {
-                    alert('Por favor, selecione apenas arquivos PNG ou JPEG');
-                    fotoInput.value = '';
-                    return;
-                }
-
-                const formData = new FormData();
-                formData.append('foto', file);
-
-                try {
-                    const response = await fetch(`/cadastro/${cadastroId}/foto`, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]') ? 
-                                document.querySelector('[name=csrfmiddlewaretoken]').value : ''
-                        }
-                    });
-
-                    const data = await response.json();
-
-                    if (data.status === 'success') {
-                        const fotoUrl = data.foto_url ? `${data.foto_url}?t=${Date.now()}` : null;
-                        if (fotoUrl) {
-                            fotoPlaceholder.innerHTML = `<img src="${fotoUrl}" alt="Foto do cadastro" style="width: 100%; height: 100%; object-fit: cover;">`;
-                        } else {
-                            const reader = new FileReader();
-                            reader.onload = (event) => {
-                                fotoPlaceholder.innerHTML = `<img src="${event.target.result}" alt="Foto do cadastro" style="width: 100%; height: 100%; object-fit: cover;">`;
-                            };
-                            reader.readAsDataURL(file);
-                        }
-                        alert('Foto enviada com sucesso!');
-                    } else {
-                        alert(data.message || 'Erro ao enviar a foto');
-                    }
-                } catch (error) {
-                    console.error('Erro:', error);
-                    alert('Erro ao enviar a foto');
-                } finally {
-                    fotoInput.value = '';
-                }
+                await uploadPhotoFile(file);
+                fotoInput.value = '';
             });
         }
     </script>
