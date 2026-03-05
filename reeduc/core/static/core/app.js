@@ -8,28 +8,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebar      = document.getElementById('sidebar');
     const collapseBtn  = document.getElementById('sidebarCollapseBtn');
     const mobileToggle = document.getElementById('mobileToggle');
+    const isMobileViewport = () => window.matchMedia('(max-width: 768px)').matches;
 
-    if (collapseBtn) {
-        collapseBtn.addEventListener('click', () => {
+    if (collapseBtn && sidebar) {
+        collapseBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isMobileViewport()) {
+                sidebar.classList.toggle('mobile-open');
+                return;
+            }
+
             sidebar.classList.toggle('collapsed');
             localStorage.setItem('sidebar-collapsed', sidebar.classList.contains('collapsed'));
         });
-        // Restore state
-        if (localStorage.getItem('sidebar-collapsed') === 'true') {
+        // Restore state only on desktop/tablet
+        if (!isMobileViewport() && localStorage.getItem('sidebar-collapsed') === 'true') {
             sidebar.classList.add('collapsed');
         }
     }
 
-    if (mobileToggle) {
-        mobileToggle.addEventListener('click', () => {
+    if (mobileToggle && sidebar) {
+        mobileToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
             sidebar.classList.toggle('mobile-open');
         });
     }
 
     // Close mobile sidebar when clicking outside
     document.addEventListener('click', (e) => {
-        if (sidebar && sidebar.classList.contains('mobile-open') &&
-            !sidebar.contains(e.target) && e.target !== mobileToggle) {
+        if (
+            sidebar &&
+            sidebar.classList.contains('mobile-open') &&
+            !sidebar.contains(e.target) &&
+            !(mobileToggle && mobileToggle.contains(e.target))
+        ) {
+            sidebar.classList.remove('mobile-open');
+        }
+    });
+
+    if (sidebar) {
+        sidebar.querySelectorAll('a.nav-item, .nav-sub__item').forEach((item) => {
+            item.addEventListener('click', () => {
+                if (isMobileViewport()) {
+                    sidebar.classList.remove('mobile-open');
+                }
+            });
+        });
+    }
+
+    window.addEventListener('resize', () => {
+        if (!sidebar) return;
+        if (!isMobileViewport()) {
             sidebar.classList.remove('mobile-open');
         }
     });
