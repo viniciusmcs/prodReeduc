@@ -238,9 +238,16 @@ def familiar_ver_view(request, familiar_id: int):
 @login_required
 def familiar_upload_foto_view(request, familiar_id: int):
     """Handle photo upload for a familiar."""
-    from django.http import JsonResponse
-
     familiar = get_object_or_404(Familiar, id=familiar_id)
+
+    if request.method == "POST" and request.POST.get("remover_foto") == "1":
+        if familiar.foto:
+            familiar.foto.delete(save=False)
+        familiar.foto = None
+        familiar.save()
+        return JsonResponse(
+            {"status": "success", "message": "Foto removida com sucesso", "foto_url": None}
+        )
 
     if request.method == "POST" and request.FILES.get("foto"):
         foto = request.FILES["foto"]

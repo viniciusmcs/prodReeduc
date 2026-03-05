@@ -1185,6 +1185,7 @@ img { max-width: 100%; display: block; }
 }
 
 .foto-upload-btn,
+.foto-switch-btn,
 .foto-capture-btn,
 .foto-cancel-btn {
     padding: 8px 14px;
@@ -1202,6 +1203,14 @@ img { max-width: 100%; display: block; }
 }
 .foto-upload-btn:hover {
     background: var(--primary-hover);
+}
+
+.foto-switch-btn {
+    background: #0ea5e9;
+    color: #fff;
+}
+.foto-switch-btn:hover {
+    background: #0284c7;
 }
 
 .foto-capture-btn {
