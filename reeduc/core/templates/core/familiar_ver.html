@@ -45,6 +45,10 @@
                     <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">cameraswitch</span>
                     Trocar Camera
                 </button>
+                <button type="button" class="foto-files-btn" id="fotoFilesBtn" style="display:none;">
+                    <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">folder_open</span>
+                    Abrir Arquivos
+                </button>
                 <button type="button" class="foto-remove-btn" id="fotoRemoveBtn" {% if not familiar.foto %}style="display:none;"{% endif %}>
                     <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">delete</span>
                     Excluir Foto
@@ -142,6 +146,7 @@
     const fotoPlaceholder = document.getElementById('fotoPlaceholder');
     const fotoUploadBtn = document.getElementById('fotoUploadBtn');
     const fotoSwitchBtn = document.getElementById('fotoSwitchBtn');
+    const fotoFilesBtn = document.getElementById('fotoFilesBtn');
     const fotoRemoveBtn = document.getElementById('fotoRemoveBtn');
     const fotoCaptureBtn = document.getElementById('fotoCaptureBtn');
     const fotoCancelBtn = document.getElementById('fotoCancelBtn');
@@ -159,8 +164,6 @@
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')
         ? document.querySelector('[name=csrfmiddlewaretoken]').value
         : '';
-    const isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
-
     let currentStream = null;
     let videoInputDevices = [];
     let currentVideoDeviceIndex = -1;
@@ -193,7 +196,10 @@
             fotoUploadBtn.style.display = 'none';
             fotoCaptureBtn.style.display = '';
             fotoCancelBtn.style.display = '';
-            if (fotoSwitchBtn && isMobileDevice && videoInputDevices.length > 1) {
+            if (fotoFilesBtn) {
+                fotoFilesBtn.style.display = '';
+            }
+            if (fotoSwitchBtn && videoInputDevices.length > 1) {
                 fotoSwitchBtn.style.display = '';
             }
             return;
@@ -204,6 +210,9 @@
         fotoUploadBtn.style.display = '';
         fotoCaptureBtn.style.display = 'none';
         fotoCancelBtn.style.display = 'none';
+        if (fotoFilesBtn) {
+            fotoFilesBtn.style.display = 'none';
+        }
         if (fotoSwitchBtn) {
             fotoSwitchBtn.style.display = 'none';
         }
@@ -365,6 +374,14 @@
         fotoSwitchBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             await switchWebcam();
+        });
+    }
+
+    if (fotoFilesBtn) {
+        fotoFilesBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            stopWebcam();
+            if (fotoInput) fotoInput.click();
         });
     }
 

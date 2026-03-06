@@ -236,6 +236,8 @@ img { max-width: 100%; display: block; }
 }
 
 .nav-sub__item {
+    display: block;
+    width: 100%;
     padding: 8px 12px;
     border-radius: var(--radius-sm);
     font-size: 13px;
@@ -1186,6 +1188,7 @@ img { max-width: 100%; display: block; }
 
 .foto-upload-btn,
 .foto-switch-btn,
+.foto-files-btn,
 .foto-capture-btn,
 .foto-cancel-btn {
     padding: 8px 14px;
@@ -1211,6 +1214,14 @@ img { max-width: 100%; display: block; }
 }
 .foto-switch-btn:hover {
     background: #0284c7;
+}
+
+.foto-files-btn {
+    background: #6366f1;
+    color: #fff;
+}
+.foto-files-btn:hover {
+    background: #4f46e5;
 }
 
 .foto-capture-btn {
@@ -1570,6 +1581,7 @@ img { max-width: 100%; display: block; }
     .sidebar {
         transform: translateX(-100%);
         width: var(--sidebar-w);
+        transition: transform var(--transition);
     }
     .sidebar.mobile-open {
         transform: translateX(0);
@@ -1577,9 +1589,20 @@ img { max-width: 100%; display: block; }
     .sidebar .sidebar__brand-text,
     .sidebar .nav-item__text,
     .sidebar .nav-item__arrow,
-    .sidebar .nav-sub,
     .sidebar .quick-add-btn .nav-item__text {
         display: unset;
+    }
+    .sidebar .nav-sub {
+        display: none;
+        flex-direction: column;
+    }
+    .sidebar .nav-sub.is-open {
+        display: flex;
+    }
+    .sidebar .nav-sub__item {
+        display: block;
+        width: 100%;
+        white-space: normal;
     }
     .sidebar .nav-item {
         justify-content: flex-start;

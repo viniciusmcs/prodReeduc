@@ -222,6 +222,14 @@
                                         <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">photo_camera</span>
                                         Iniciar Webcam
                                     </button>
+                                    <button type="button" class="foto-switch-btn" id="fotoSwitchBtn" style="display:none;">
+                                        <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">cameraswitch</span>
+                                        Trocar Camera
+                                    </button>
+                                    <button type="button" class="foto-files-btn" id="fotoFilesBtn" style="display:none;">
+                                        <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">folder_open</span>
+                                        Abrir Arquivos
+                                    </button>
                                     {% if cadastro.foto %}
                                     <button type="button" class="foto-remove-btn" id="fotoRemoveBtn">
                                         <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">delete</span>
@@ -373,6 +381,8 @@
     <script>
         /* ── DOM refs ── */
         const fotoUploadBtn   = document.getElementById('fotoUploadBtn');
+        const fotoSwitchBtn   = document.getElementById('fotoSwitchBtn');
+        const fotoFilesBtn    = document.getElementById('fotoFilesBtn');
         const fotoCaptureBtn  = document.getElementById('fotoCaptureBtn');
         const fotoCancelBtn   = document.getElementById('fotoCancelBtn');
         const fotoRemoveBtn   = document.getElementById('fotoRemoveBtn');
@@ -390,6 +400,9 @@
         const removerFotoInput = document.getElementById('removerFotoInput');
 
         let currentStream = null;
+        let videoInputDevices = [];
+        let currentVideoDeviceIndex = -1;
+        let currentFacingMode = 'user';
 
         /* ── Máscaras ── */
         const onlyDigits = (value) => value.replace(/\D/g, '');
@@ -428,17 +441,64 @@
         applyMask('id_titulo_eleitor_numero', formatTitulo);
 
         /* ── Webcam helpers ── */
+        function setWebcamControls(enabled) {
+            if (!fotoPreview || !webcamContainer || !fotoCaptureBtn || !fotoCancelBtn || !fotoUploadBtn) {
+                return;
+            }
+
+            if (enabled) {
+                webcamContainer.style.display = 'block';
+                fotoPreview.style.display = 'none';
+                fotoUploadBtn.style.display = 'none';
+                fotoCaptureBtn.style.display = '';
+                fotoCancelBtn.style.display = '';
+                if (fotoFilesBtn) fotoFilesBtn.style.display = '';
+                if (fotoSwitchBtn && videoInputDevices.length > 1) {
+                    fotoSwitchBtn.style.display = '';
+                }
+                return;
+            }
+
+            webcamContainer.style.display = 'none';
+            fotoPreview.style.display = '';
+            fotoUploadBtn.style.display = '';
+            fotoCaptureBtn.style.display = 'none';
+            fotoCancelBtn.style.display = 'none';
+            if (fotoFilesBtn) fotoFilesBtn.style.display = 'none';
+            if (fotoSwitchBtn) fotoSwitchBtn.style.display = 'none';
+        }
+
         function stopWebcam() {
             if (currentStream) {
                 currentStream.getTracks().forEach(t => t.stop());
                 currentStream = null;
             }
-            webcamVideo.srcObject = null;
-            webcamContainer.style.display = 'none';
-            fotoCaptureBtn.style.display = 'none';
-            fotoCancelBtn.style.display = 'none';
-            fotoUploadBtn.style.display = '';
-            fotoPreview.style.display = '';
+            if (webcamVideo) webcamVideo.srcObject = null;
+            setWebcamControls(false);
+        }
+
+        async function refreshVideoInputs() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+                videoInputDevices = [];
+                return;
+            }
+            const allDevices = await navigator.mediaDevices.enumerateDevices();
+            videoInputDevices = allDevices.filter((device) => device.kind === 'videoinput');
+        }
+
+        function getVideoConstraints() {
+            const constraints = {
+                width: { ideal: 640 },
+                height: { ideal: 480 },
+            };
+
+            if (videoInputDevices.length > 1 && currentVideoDeviceIndex >= 0 && videoInputDevices[currentVideoDeviceIndex]) {
+                constraints.deviceId = { exact: videoInputDevices[currentVideoDeviceIndex].deviceId };
+            } else {
+                constraints.facingMode = { ideal: currentFacingMode };
+            }
+
+            return constraints;
         }
 
         function showModal() {
@@ -457,28 +517,71 @@
             if (deletePhotoModal) deletePhotoModal.style.display = 'none';
         }
 
-        /* ── Iniciar Webcam ── */
+        async function startWebcam() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showModal();
+                return;
+            }
+
+            try {
+                stopWebcam();
+                await refreshVideoInputs();
+
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: getVideoConstraints(),
+                    audio: false,
+                });
+                currentStream = stream;
+                webcamVideo.srcObject = stream;
+
+                const activeTrack = stream.getVideoTracks()[0];
+                const activeDeviceId = activeTrack && activeTrack.getSettings ? activeTrack.getSettings().deviceId : null;
+                if (activeDeviceId && videoInputDevices.length > 1) {
+                    const foundIndex = videoInputDevices.findIndex((device) => device.deviceId === activeDeviceId);
+                    if (foundIndex >= 0) {
+                        currentVideoDeviceIndex = foundIndex;
+                    }
+                }
+
+                setWebcamControls(true);
+            } catch (err) {
+                console.warn('Webcam nao disponivel:', err);
+                showModal();
+                setWebcamControls(false);
+            }
+        }
+
+        async function switchWebcam() {
+            if (videoInputDevices.length > 1) {
+                currentVideoDeviceIndex = (currentVideoDeviceIndex + 1) % videoInputDevices.length;
+            } else {
+                currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            }
+            await startWebcam();
+        }
+
+        /* Iniciar Webcam */
         if (fotoUploadBtn) {
             fotoUploadBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
-                    });
-                    currentStream = stream;
-                    webcamVideo.srcObject = stream;
-                    webcamContainer.style.display = 'block';
-                    fotoPreview.style.display = 'none';
-                    fotoUploadBtn.style.display = 'none';
-                    fotoCaptureBtn.style.display = '';
-                    fotoCancelBtn.style.display = '';
-                } catch (err) {
-                    console.warn('Webcam não disponível:', err);
-                    showModal();
-                }
+                await startWebcam();
             });
         }
 
+        if (fotoSwitchBtn) {
+            fotoSwitchBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await switchWebcam();
+            });
+        }
+
+        if (fotoFilesBtn) {
+            fotoFilesBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                stopWebcam();
+                fotoUploadInput.click();
+            });
+        }
         /* ── Capturar Foto ── */
         if (fotoCaptureBtn) {
             fotoCaptureBtn.addEventListener('click', (e) => {

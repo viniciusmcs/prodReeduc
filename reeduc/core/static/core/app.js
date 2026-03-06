@@ -68,6 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetId = btn.getAttribute('data-target');
         const submenu  = document.getElementById(targetId);
         if (!submenu) return;
+        if (!btn.hasAttribute('aria-expanded')) {
+            btn.setAttribute('aria-expanded', 'false');
+        }
 
         // Auto-open if current URL matches a sub-item
         const currentPath = window.location.pathname;
@@ -85,7 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.classList.add('active');
         }
 
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
             const open = submenu.classList.toggle('is-open');
             btn.setAttribute('aria-expanded', open);
         });

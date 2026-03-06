@@ -39,6 +39,14 @@
                                     <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">photo_camera</span>
                                     Iniciar Webcam
                                 </button>
+                                <button type="button" class="foto-switch-btn" id="fotoSwitchBtn" style="display:none;">
+                                    <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">cameraswitch</span>
+                                    Trocar Camera
+                                </button>
+                                <button type="button" class="foto-files-btn" id="fotoFilesBtn" style="display:none;">
+                                    <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">folder_open</span>
+                                    Abrir Arquivos
+                                </button>
                                 {% if cadastro.foto %}
                                 <button type="button" class="foto-remove-btn" id="fotoRemoveBtn">
                                     <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">delete</span>
@@ -364,6 +372,8 @@
         const fotoInput = document.getElementById('fotoInput');
         const fotoPlaceholder = document.getElementById('fotoPlaceholder');
         const fotoUploadBtn = document.getElementById('fotoUploadBtn');
+        const fotoSwitchBtn = document.getElementById('fotoSwitchBtn');
+        const fotoFilesBtn = document.getElementById('fotoFilesBtn');
         const fotoRemoveBtn = document.getElementById('fotoRemoveBtn');
         const fotoCaptureBtn = document.getElementById('fotoCaptureBtn');
         const fotoCancelBtn = document.getElementById('fotoCancelBtn');
@@ -380,6 +390,9 @@
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? 
             document.querySelector('[name=csrfmiddlewaretoken]').value : '';
         let currentStream = null;
+        let videoInputDevices = [];
+        let currentVideoDeviceIndex = -1;
+        let currentFacingMode = 'user';
 
         const renderPhoto = (fotoUrl = null) => {
             if (fotoUrl) {
@@ -440,17 +453,64 @@
             }
         };
 
+        const setWebcamControls = (enabled) => {
+            if (!fotoPlaceholder || !webcamContainer || !fotoCaptureBtn || !fotoCancelBtn || !fotoUploadBtn) {
+                return;
+            }
+
+            if (enabled) {
+                webcamContainer.style.display = 'block';
+                fotoPlaceholder.style.display = 'none';
+                fotoUploadBtn.style.display = 'none';
+                fotoCaptureBtn.style.display = '';
+                fotoCancelBtn.style.display = '';
+                if (fotoFilesBtn) fotoFilesBtn.style.display = '';
+                if (fotoSwitchBtn && videoInputDevices.length > 1) {
+                    fotoSwitchBtn.style.display = '';
+                }
+                return;
+            }
+
+            webcamContainer.style.display = 'none';
+            fotoPlaceholder.style.display = '';
+            fotoUploadBtn.style.display = '';
+            fotoCaptureBtn.style.display = 'none';
+            fotoCancelBtn.style.display = 'none';
+            if (fotoFilesBtn) fotoFilesBtn.style.display = 'none';
+            if (fotoSwitchBtn) fotoSwitchBtn.style.display = 'none';
+        };
+
         const stopWebcam = () => {
             if (currentStream) {
                 currentStream.getTracks().forEach(track => track.stop());
                 currentStream = null;
             }
-            webcamVideo.srcObject = null;
-            webcamContainer.style.display = 'none';
-            fotoCaptureBtn.style.display = 'none';
-            fotoCancelBtn.style.display = 'none';
-            fotoUploadBtn.style.display = '';
-            fotoPlaceholder.style.display = '';
+            if (webcamVideo) webcamVideo.srcObject = null;
+            setWebcamControls(false);
+        };
+
+        const refreshVideoInputs = async () => {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+                videoInputDevices = [];
+                return;
+            }
+            const allDevices = await navigator.mediaDevices.enumerateDevices();
+            videoInputDevices = allDevices.filter((device) => device.kind === 'videoinput');
+        };
+
+        const getVideoConstraints = () => {
+            const constraints = {
+                width: { ideal: 640 },
+                height: { ideal: 480 },
+            };
+
+            if (videoInputDevices.length > 1 && currentVideoDeviceIndex >= 0 && videoInputDevices[currentVideoDeviceIndex]) {
+                constraints.deviceId = { exact: videoInputDevices[currentVideoDeviceIndex].deviceId };
+            } else {
+                constraints.facingMode = { ideal: currentFacingMode };
+            }
+
+            return constraints;
         };
 
         const showModal = () => {
@@ -469,27 +529,70 @@
             if (deletePhotoModal) deletePhotoModal.style.display = 'none';
         };
 
+        const startWebcam = async () => {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showModal();
+                return;
+            }
+
+            try {
+                stopWebcam();
+                await refreshVideoInputs();
+
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: getVideoConstraints(),
+                    audio: false,
+                });
+                currentStream = stream;
+                webcamVideo.srcObject = stream;
+
+                const activeTrack = stream.getVideoTracks()[0];
+                const activeDeviceId = activeTrack && activeTrack.getSettings ? activeTrack.getSettings().deviceId : null;
+                if (activeDeviceId && videoInputDevices.length > 1) {
+                    const foundIndex = videoInputDevices.findIndex((device) => device.deviceId === activeDeviceId);
+                    if (foundIndex >= 0) {
+                        currentVideoDeviceIndex = foundIndex;
+                    }
+                }
+
+                setWebcamControls(true);
+            } catch (error) {
+                console.warn('Webcam nao disponivel:', error);
+                showModal();
+                setWebcamControls(false);
+            }
+        };
+
+        const switchWebcam = async () => {
+            if (videoInputDevices.length > 1) {
+                currentVideoDeviceIndex = (currentVideoDeviceIndex + 1) % videoInputDevices.length;
+            } else {
+                currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            }
+            await startWebcam();
+        };
+
         if (fotoUploadBtn) {
             fotoUploadBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
-                    });
-                    currentStream = stream;
-                    webcamVideo.srcObject = stream;
-                    webcamContainer.style.display = 'block';
-                    fotoPlaceholder.style.display = 'none';
-                    fotoUploadBtn.style.display = 'none';
-                    fotoCaptureBtn.style.display = '';
-                    fotoCancelBtn.style.display = '';
-                } catch (error) {
-                    console.warn('Webcam não disponível:', error);
-                    showModal();
-                }
+                await startWebcam();
             });
         }
 
+        if (fotoSwitchBtn) {
+            fotoSwitchBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await switchWebcam();
+            });
+        }
+
+        if (fotoFilesBtn) {
+            fotoFilesBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                stopWebcam();
+                if (fotoInput) fotoInput.click();
+            });
+        }
         if (fotoCaptureBtn) {
             fotoCaptureBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
