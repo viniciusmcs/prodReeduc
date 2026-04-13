@@ -5,13 +5,21 @@
 {% block nav_familiares %}active{% endblock %}
 
 {% block content %}
-<h1>Familiares sem vínculo ({{ total }})</h1>
-<div class="links-row">
-    <a class="primary-button primary-button--no-bg" href="/familiares/adicionar">+ Cadastrar Familiar</a>
+<div class="page-header">
+    <h1>Familiares</h1>
+    <p>Familiares cadastrados sem vínculo direto com egresso.</p>
+    <div class="page-header__actions">
+        <a class="btn btn--primary btn--sm" href="/familiares/adicionar"><span class="material-icons-outlined" style="font-size:16px">add</span> Cadastrar Familiar</a>
+    </div>
 </div>
-<section class="table-card">
-    <div class="table-card__body">
-        <table>
+
+<div class="data-card">
+    <div class="data-card__header">
+        <h2><span class="material-icons-outlined" style="vertical-align:middle;margin-right:8px;">family_restroom</span>Familiares sem vínculo</h2>
+        <span class="data-card__badge">{{ total }}</span>
+    </div>
+    <div class="data-card__body">
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>Nome</th>
@@ -36,9 +44,9 @@
                     </td>
                     <td>{{ familiar.telefone_numero|default:'-' }}</td>
                     <td class="actions-cell">
-                        <a class="icon-button" href="/familiares/{{ familiar.id }}/ver" title="Ver">👁</a>
-                        <a class="icon-button" href="/familiares/{{ familiar.id }}/editar" title="Editar">✏</a>
-                        <a class="icon-button icon-button--danger" href="/familiares/{{ familiar.id }}/excluir" title="Excluir">🗑</a>
+                        <a class="btn-icon" href="/familiares/{{ familiar.id }}/ver" title="Ver"><span class="material-icons-outlined">visibility</span></a>
+                        <a class="btn-icon" href="/familiares/{{ familiar.id }}/editar" title="Editar"><span class="material-icons-outlined">edit</span></a>
+                        <a class="btn-icon btn-icon--danger" href="/familiares/{{ familiar.id }}/excluir" title="Excluir"><span class="material-icons-outlined">delete</span></a>
                     </td>
                 </tr>
                 {% empty %}
@@ -49,5 +57,5 @@
             </tbody>
         </table>
     </div>
-</section>
+</div>
 {% endblock %}

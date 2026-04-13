@@ -86,26 +86,6 @@
         margin-top: 8px;
     }
 
-    .primary-button {
-        background: #1a7f4b;
-        border: none;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 999px;
-        font-size: 13px;
-        cursor: pointer;
-    }
-
-    .ghost-button {
-        background: transparent;
-        border: 1px solid var(--border);
-        padding: 10px 20px;
-        border-radius: 999px;
-        font-size: 13px;
-        text-decoration: none;
-        color: var(--text-primary);
-    }
-
     .note-meta {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -168,11 +148,11 @@
     </div>
 
     <div class="note-actions">
-        <button type="submit" class="primary-button">Salvar</button>
+        <button type="submit" class="btn btn--primary">Salvar</button>
         {% if cadastro %}
-        <a class="ghost-button" href="/cadastro/perfil/{{ cadastro.id }}">Cancelar</a>
+        <a class="btn btn--ghost" href="/cadastro/perfil/{{ cadastro.id }}">Cancelar</a>
         {% else %}
-        <a class="ghost-button" href="/home/">Cancelar</a>
+        <a class="btn btn--ghost" href="/home/">Cancelar</a>
         {% endif %}
     </div>
 </form>

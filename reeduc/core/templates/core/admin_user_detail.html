@@ -6,21 +6,31 @@
 {% block nav_admin %}active{% endblock %}
 
 {% block content %}
-<h1>Detalhes do Usuário</h1>
-<section class="table-card">
-    <div class="table-card__body">
-        <table>
+<div class="page-header">
+    <div>
+        <h1>Detalhes do Usuário</h1>
+    </div>
+</div>
+<section class="data-card">
+    <div class="data-card__body">
+        <table class="data-table">
             <tbody>
                 <tr><th>Nome Completo</th><td>{{ user_obj.get_full_name|default:user_obj.username }}</td></tr>
                 <tr><th>Username</th><td>{{ user_obj.username }}</td></tr>
                 <tr><th>E-mail</th><td>{{ user_obj.email }}</td></tr>
                 <tr><th>Cargo/Função</th><td>{{ profile.get_cargo_es_display|default:"-" }}</td></tr>
-                <tr><th>Status</th><td>{% if user_obj.is_active %}Ativo{% else %}Inativo{% endif %}</td></tr>
+                <tr><th>Status</th><td>
+                    {% if user_obj.is_active %}
+                        <span class="badge badge--success">Ativo</span>
+                    {% else %}
+                        <span class="badge badge--muted">Inativo</span>
+                    {% endif %}
+                </td></tr>
             </tbody>
         </table>
     </div>
 </section>
-<div class="actions">
-    <a class="ghost-button" href="/administrar/usuarios">Voltar</a>
+<div class="actions" style="margin-top: 16px;">
+    <a class="btn btn--ghost" href="/administrar/usuarios"><span class="material-icons-outlined" style="font-size:16px">arrow_back</span> Voltar</a>
 </div>
 {% endblock %}

@@ -141,38 +141,6 @@
         margin-top: 20px;
     }
 
-    .primary-button,
-    .ghost-button {
-        padding: 10px 16px;
-        border: none;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-        text-decoration: none;
-        display: inline-block;
-    }
-
-    .primary-button {
-        background: var(--primary);
-        color: white;
-    }
-
-    .primary-button:hover {
-        background: var(--primary-dark, #0056b3);
-    }
-
-    .ghost-button {
-        background: transparent;
-        color: var(--primary);
-        border: 1px solid var(--primary);
-    }
-
-    .ghost-button:hover {
-        background: rgba(25, 118, 210, 0.05);
-    }
-
     .form-full-width {
         grid-column: 1 / -1;
     }
@@ -248,8 +216,20 @@
                                         <h4>Webcam não encontrada</h4>
                                         <p>Não foi possível acessar a câmera do dispositivo. Deseja abrir o explorador de arquivos para selecionar uma foto?</p>
                                         <div class="webcam-modal-actions">
-                                            <button type="button" class="primary-button" id="modalOpenFiles">Abrir Arquivos</button>
-                                            <button type="button" class="ghost-button" id="modalCancel">Cancelar</button>
+                                            <button type="button" class="btn btn--primary" id="modalOpenFiles">Abrir Arquivos</button>
+                                            <button type="button" class="btn btn--ghost" id="modalCancel">Cancelar</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="webcam-modal-overlay" id="deletePhotoModal" style="display:none;">
+                                    <div class="webcam-modal">
+                                        <span class="material-icons-outlined" style="font-size:48px;color:var(--danger);margin-bottom:12px;">warning</span>
+                                        <h4>Remover foto</h4>
+                                        <p>Tem certeza que deseja remover a foto deste cadastro?</p>
+                                        <div class="webcam-modal-actions">
+                                            <button type="button" class="btn btn--primary" id="deletePhotoConfirmBtn">Confirmar</button>
+                                            <button type="button" class="btn btn--ghost" id="deletePhotoCancelBtn">Cancelar</button>
                                         </div>
                                     </div>
                                 </div>
@@ -351,8 +331,8 @@
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="primary-button">Salvar</button>
-                        <a class="ghost-button" href="/cadastro">Cancelar</a>
+                        <button type="submit" class="btn btn--primary">Salvar</button>
+                        <a class="btn btn--ghost" href="/cadastro">Cancelar</a>
                     </div>
                 </form>
 {% endblock %}
@@ -372,6 +352,9 @@
         const webcamModal     = document.getElementById('webcamModal');
         const modalOpenFiles  = document.getElementById('modalOpenFiles');
         const modalCancel     = document.getElementById('modalCancel');
+        const deletePhotoModal = document.getElementById('deletePhotoModal');
+        const deletePhotoConfirmBtn = document.getElementById('deletePhotoConfirmBtn');
+        const deletePhotoCancelBtn = document.getElementById('deletePhotoCancelBtn');
         const removerFotoInput = document.getElementById('removerFotoInput');
 
         let currentStream = null;
@@ -432,6 +415,14 @@
 
         function hideModal() {
             webcamModal.style.display = 'none';
+        }
+
+        function showDeletePhotoModal() {
+            if (deletePhotoModal) deletePhotoModal.style.display = 'flex';
+        }
+
+        function hideDeletePhotoModal() {
+            if (deletePhotoModal) deletePhotoModal.style.display = 'none';
         }
 
         /* ── Iniciar Webcam ── */
@@ -513,7 +504,6 @@
                 if (file) {
                     const validTypes = ['image/png', 'image/jpeg'];
                     if (!validTypes.includes(file.type)) {
-                        alert('Por favor, selecione apenas arquivos PNG ou JPEG');
                         return;
                     }
                     // Clear remove flag since user is uploading a new photo
@@ -531,12 +521,24 @@
         if (fotoRemoveBtn) {
             fotoRemoveBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                if (!confirm('Tem certeza que deseja remover a foto?')) return;
+                showDeletePhotoModal();
+            });
+        }
+
+        if (deletePhotoConfirmBtn) {
+            deletePhotoConfirmBtn.addEventListener('click', () => {
+                hideDeletePhotoModal();
                 fotoPreview.innerHTML = '<span>Nenhuma foto</span>';
                 if (removerFotoInput) removerFotoInput.value = '1';
                 // Clear file input in case user had selected a new file
                 if (fotoUploadInput) fotoUploadInput.value = '';
                 fotoRemoveBtn.style.display = 'none';
+            });
+        }
+
+        if (deletePhotoCancelBtn) {
+            deletePhotoCancelBtn.addEventListener('click', () => {
+                hideDeletePhotoModal();
             });
         }
     </script>

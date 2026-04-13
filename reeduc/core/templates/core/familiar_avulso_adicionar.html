@@ -84,6 +84,22 @@
 
             <div class="grid">
                 <div class="field">
+                    <label for="id_encaminhamento">Encaminhamento</label>
+                    {{ form.encaminhamento }}
+                    {{ form.encaminhamento.errors }}
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="field">
+                    <label for="id_encaminhamento_detalhe">Detalhes do encaminhamento</label>
+                    {{ form.encaminhamento_detalhe }}
+                    {{ form.encaminhamento_detalhe.errors }}
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="field">
                     <label for="id_cpf_numero">CPF</label>
                     {{ form.cpf_numero }}
                     {{ form.cpf_numero.errors }}
@@ -145,8 +161,8 @@
             </div>
 
             <div class="actions">
-                <button type="submit" class="primary-button">Salvar</button>
-                <a class="ghost-button" href="/familiares">Cancelar</a>
+                <button type="submit" class="btn btn--primary">Salvar</button>
+                <a class="btn btn--ghost" href="/familiares">Cancelar</a>
             </div>
         </form>
     </div>

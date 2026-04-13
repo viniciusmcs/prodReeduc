@@ -170,6 +170,14 @@
                 {{ form.parentesco }}
             </div>
             <div class="form-group">
+                <label for="id_encaminhamento">Encaminhamento</label>
+                {{ form.encaminhamento }}
+            </div>
+            <div class="form-group form-full-width">
+                <label for="id_encaminhamento_detalhe">Detalhes do encaminhamento</label>
+                {{ form.encaminhamento_detalhe }}
+            </div>
+            <div class="form-group">
                 <label for="id_bairro">Bairro</label>
                 {{ form.bairro }}
             </div>
@@ -192,8 +200,8 @@
         </div>
     </section>
     <div class="form-actions">
-        <button type="submit" class="primary-button">Salvar</button>
-        <a class="ghost-button" href="/cadastro/familiares/{{ familiar.cadastro_id }}">Cancelar</a>
+        <button type="submit" class="btn btn--primary">Salvar</button>
+        <a class="btn btn--ghost" href="/cadastro/familiares/{{ familiar.cadastro_id }}">Cancelar</a>
     </div>
 </form>
 {% endblock %}

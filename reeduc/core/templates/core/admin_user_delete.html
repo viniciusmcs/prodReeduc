@@ -6,14 +6,18 @@
 {% block nav_admin %}active{% endblock %}
 
 {% block content %}
-<h1>Excluir Usuário</h1>
-<div class="form">
+<div class="page-header">
+    <div>
+        <h1>Excluir Usuário</h1>
+    </div>
+</div>
+<div class="data-card" style="padding: 24px;">
     <p>Tem certeza que deseja excluir o usuário <strong>{{ user_obj.username }}</strong>?</p>
     <form method="post">
         {% csrf_token %}
-        <div class="actions">
-            <button type="submit" class="primary-button">Excluir</button>
-            <a class="ghost-button" href="/administrar/usuarios">Cancelar</a>
+        <div class="actions" style="display: flex; gap: 10px; margin-top: 16px;">
+            <button type="submit" class="btn btn--danger">Excluir</button>
+            <a class="btn btn--ghost" href="/administrar/usuarios">Cancelar</a>
         </div>
     </form>
 </div>

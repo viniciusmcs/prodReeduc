@@ -19,13 +19,13 @@
                     <a class="tab nav-link" href="/cadastro/agendamentos/{{ cadastro.id }}">Agendamentos</a>
                 </div>
 
-                <div id="familiares" class="tab-content bg-white rounded p-2 py-1" style="margin-bottom: 16px;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                        <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Familiares</h3>
-                        <button type="button" id="openFamiliarModal" class="primary-button" style="padding: 6px 12px;">+ Cadastrar Familiar</button>
+                <section class="data-card" style="margin-bottom: 16px;">
+                    <div class="data-card__header">
+                        <h2>Familiares</h2>
+                        <button type="button" id="openFamiliarModal" class="btn btn--primary btn--sm"><span class="material-icons-outlined" style="font-size:16px">person_add</span> Cadastrar Familiar</button>
                     </div>
-                    <div class="table-card__body">
-                        <table>
+                    <div class="data-card__body">
+                        <table class="data-table">
                             <thead>
                                 <tr>
                                     <th>Nome</th>
@@ -43,9 +43,9 @@
                                     <td>{{ familiar.telefone_numero|default:"-" }}</td>
                                     <td>{{ familiar.data_nascimento|date:"d/m/Y"|default:"-" }}</td>
                                     <td>
-                                        <a href="/cadastro/familiares/ver/{{ familiar.id }}" title="Ver">👁️</a>
-                                        <a href="/cadastro/familiares/editar/{{ familiar.id }}" title="Editar" style="margin-left: 6px;">✏️</a>
-                                        <a href="/cadastro/familiares/excluir/{{ familiar.id }}" title="Excluir" style="margin-left: 6px;">🗑️</a>
+                                        <a class="btn-icon" href="/cadastro/familiares/ver/{{ familiar.id }}" title="Ver"><span class="material-icons-outlined">visibility</span></a>
+                                        <a class="btn-icon" href="/cadastro/familiares/editar/{{ familiar.id }}" title="Editar"><span class="material-icons-outlined">edit</span></a>
+                                        <a class="btn-icon btn-icon--danger" href="/cadastro/familiares/excluir/{{ familiar.id }}" title="Excluir"><span class="material-icons-outlined">delete</span></a>
                                     </td>
                                 </tr>
                                 {% empty %}
@@ -56,7 +56,7 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </section>
 
     <div class="modal fade" id="familiarModal" aria-hidden="true">
         <div class="modal-dialog">
@@ -241,8 +241,8 @@
                         </div>
 
                         <div class="modal-footer">
-                            <button type="button" class="ghost-button" id="cancelFamiliarModal">Cancelar</button>
-                            <button type="submit" class="primary-button">Salvar</button>
+                            <button type="button" class="btn btn--ghost" id="cancelFamiliarModal">Cancelar</button>
+                            <button type="submit" class="btn btn--primary">Salvar</button>
                         </div>
                     </form>
                 </div>

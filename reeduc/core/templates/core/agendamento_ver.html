@@ -73,16 +73,6 @@
         margin-bottom: 6px;
         color: #111827;
     }
-
-    .primary-button {
-        padding: 5px 8px;
-        border-radius: 10px;
-        border: none;
-        background: var(--primary);
-        color: #fff;
-        font-weight: 600;
-        cursor: pointer;
-    }
 </style>
 {% endblock %}
 
@@ -92,8 +82,8 @@
                     <span class="view-badge">{{ agendamento.nome_atendido }}</span>
                 </div>
 
-                <section class="table-card">
-                    <div class="table-card__body" style="padding: 20px 30px 20px;">
+                <section class="data-card">
+                    <div class="data-card__body" style="padding: 20px 30px 20px;">
                         <div class="detail-list">
                             <div class="detail-item">
                                 <strong>Nome do Atendido</strong>
@@ -114,7 +104,7 @@
                             <div class="detail-item">
                                 <strong>Ações</strong>
                                 <div class="detail-actions">
-                                    <a class="primary-button" href="/agendamentos/{{ agendamento.id }}/editar" style="background: transparent; border: 1px solid #555555; color: #000000;">Editar</a>
+                                    <a class="btn btn--outline btn--sm" href="/agendamentos/{{ agendamento.id }}/editar"><span class="material-icons-outlined" style="font-size:16px">edit</span> Editar</a>
                                 </div>
                             </div>
                         </div>

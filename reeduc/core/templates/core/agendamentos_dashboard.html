@@ -5,61 +5,62 @@
 {% block nav_agendamentos %}active{% endblock %}
 
 {% block content %}
-                <h1>Agendamentos Pendentes <span style="color: #c00; font-size: 18px;">{{ total }}</span></h1>
+<div class="page-header">
+    <h1>Agendamentos</h1>
+    <p>Visualize e gerencie os agendamentos pendentes.</p>
+    <div class="page-header__actions">
+        <a class="btn btn--primary btn--sm" href="/agendamentos/adicionar"><span class="material-icons-outlined" style="font-size:16px">add</span> Novo Agendamento</a>
+    </div>
+</div>
 
-                <div class="links-row">
-                    <a href="/agendamentos" class="link">Ver todos os agendamentos</a>
-                    <a href="/agendamentos/adicionar" class="link">Criar novo agendamento</a>
-                </div>
+<form method="get" class="search-form" style="margin-bottom:20px;">
+    <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nome do atendido..." />
+</form>
 
-                <form method="get" class="search-form" style="margin-bottom: 16px;">
-                    <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nome do atendido..." />
-                    <button type="submit" class="primary-button" style="display: none;">Pesquisar</button>
-                </form>
-
-                <div class="table-card">
-                    <div class="table-card__header">
-                        <h3 style="margin: 0;">Agendamentos</h3>
-                    </div>
-                    <table class="table">
-                        <thead class="table-card__header">
-                            <tr>
-                                <th>Data</th>
-                                <th>Atendido</th>
-                                <th>Tipo</th>
-                                <th>Horário</th>
-                                <th>Observações</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody class="table-card__body">
-                            {% for item in agendamentos_with_cadastro %}
-                            <tr>
-                                <td>{{ item.agendamento.data_agendamento|date:"d/m/Y" }}</td>
-                                <td>
-                                    {% if item.cadastro %}
-                                        <a href="/cadastro/perfil/{{ item.cadastro.id }}" style="color: var(--primary); text-decoration: none; cursor: pointer;">
-                                            {{ item.agendamento.nome_atendido }}
-                                        </a>
-                                    {% else %}
-                                        {{ item.agendamento.nome_atendido }}
-                                    {% endif %}
-                                </td>
-                                <td>{{ item.agendamento.get_tipo_agendamento_display|default:"-" }}</td>
-                                <td>{{ item.agendamento.horario_atendimento|default:"-" }}</td>
-                                <td>{{ item.agendamento.observacoes|truncatewords:10 }}</td>
-                                <td>
-                                    <a href="/agendamentos/{{ item.agendamento.id }}/ver" style="color: #2563eb; text-decoration: none; margin-right: 8px;" title="Ver">👁️</a>
-                                    <a href="/agendamentos/{{ item.agendamento.id }}/editar" style="color: #16a34a; text-decoration: none; margin-right: 8px;" title="Editar">✏️</a>
-                                    <a href="/agendamentos/{{ item.agendamento.id }}/excluir" style="color: #dc2626; text-decoration: none;" title="Excluir">🗑️</a>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6">Nenhum agendamento encontrado.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+<div class="data-card">
+    <div class="data-card__header">
+        <h2><span class="material-icons-outlined" style="vertical-align:middle;margin-right:8px;">calendar_today</span>Agendamentos</h2>
+        <span class="data-card__badge data-card__badge--danger">{{ total }}</span>
+    </div>
+    <div class="data-card__body">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Atendido</th>
+                    <th>Tipo</th>
+                    <th>Horário</th>
+                    <th>Observações</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in agendamentos_with_cadastro %}
+                <tr>
+                    <td>{{ item.agendamento.data_agendamento|date:"d/m/Y" }}</td>
+                    <td>
+                        {% if item.cadastro %}
+                            <a href="/cadastro/perfil/{{ item.cadastro.id }}">{{ item.agendamento.nome_atendido }}</a>
+                        {% else %}
+                            {{ item.agendamento.nome_atendido }}
+                        {% endif %}
+                    </td>
+                    <td>{{ item.agendamento.get_tipo_agendamento_display|default:"-" }}</td>
+                    <td>{{ item.agendamento.horario_atendimento|default:"-" }}</td>
+                    <td>{{ item.agendamento.observacoes|truncatewords:10|default:"-" }}</td>
+                    <td class="actions-cell">
+                        <a class="btn-icon" href="/agendamentos/{{ item.agendamento.id }}/ver" title="Ver"><span class="material-icons-outlined">visibility</span></a>
+                        <a class="btn-icon" href="/agendamentos/{{ item.agendamento.id }}/editar" title="Editar"><span class="material-icons-outlined">edit</span></a>
+                        <a class="btn-icon btn-icon--danger" href="/agendamentos/{{ item.agendamento.id }}/excluir" title="Excluir"><span class="material-icons-outlined">delete</span></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">Nenhum agendamento encontrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

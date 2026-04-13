@@ -76,9 +76,9 @@
 
 {% block content %}
 <h1>Meu Perfil</h1>
-<section class="table-card">
-    <div class="table-card__body">
-        <table>
+<section class="data-card">
+    <div class="data-card__body">
+        <table class="data-table">
             <tbody>
                 <tr><th>Nome do Usuário/Username</th><td>{{ profile_user.username }}</td></tr>
                 <tr><th>Nome Completo</th><td>{{ profile_user.get_full_name|default:"Administrador" }}</td></tr>
@@ -94,13 +94,13 @@
     <section class="profile-card">
         <h2>Atualizar Nome ou Username</h2>
         <p>Abra a pagina dedicada para alterar seus dados.</p>
-        <a class="primary-button" href="/usuario/perfil/{{ profile_user.username }}/editar">Atualizar dados</a>
+        <a class="btn btn--primary" href="/usuario/perfil/{{ profile_user.username }}/editar">Atualizar dados</a>
     </section>
 
     <section class="profile-card">
         <h2>Trocar a Senha</h2>
         <p>Abra a pagina dedicada para alterar a senha.</p>
-        <a class="primary-button" href="/usuario/perfil/{{ profile_user.username }}/trocarsenha">Trocar senha</a>
+        <a class="btn btn--primary" href="/usuario/perfil/{{ profile_user.username }}/trocarsenha">Trocar senha</a>
     </section>
 </div>
 {% endblock %}

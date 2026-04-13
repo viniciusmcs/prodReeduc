@@ -6,51 +6,50 @@
 {% block nav_atendimentos %}active{% endblock %}
 
 {% block content %}
-<div class="activities-header">
+<div class="page-header">
     <h1>Atendimentos</h1>
-    <span class="badge">{{ total }}</span>
-</div>
-
-<div class="links-row">
-    <a href="/home/atendimentos/adicionar">Criar novo atendimento</a>
-</div>
-
-<section class="table-card">
-    <div class="table-card__header">
-        <h2>Filtrar</h2>
-        <span class="caret">▾</span>
+    <p>Gerencie todos os atendimentos do sistema.</p>
+    <div class="page-header__actions">
+        <a class="btn btn--primary btn--sm" href="/home/atendimentos/adicionar"><span class="material-icons-outlined" style="font-size:16px">add</span> Novo Atendimento</a>
     </div>
-    <div class="table-card__body">
-        <form class="grid" method="get">
-            <div class="field">
+</div>
+
+<div class="data-card" style="margin-bottom:24px;">
+    <div class="data-card__header">
+        <h2><span class="material-icons-outlined" style="vertical-align:middle;margin-right:8px;">filter_alt</span>Filtrar</h2>
+    </div>
+    <div class="data-card__body" style="padding:20px;">
+        <form class="form-grid" method="get">
+            <div class="form-field">
                 <label for="q">Buscar por nome</label>
                 <input type="text" id="q" name="q" placeholder="Buscar por nome..." value="{{ query }}" />
             </div>
-            <div class="field">
+            <div class="form-field">
                 <label for="data">Desde esta data</label>
                 <input type="date" id="data" name="data" value="{{ data }}" />
             </div>
-            <div class="field">
+            <div class="form-field">
                 <label for="status">Status</label>
                 <select id="status" name="status">
-                    <option value="">Status</option>
+                    <option value="">Todos</option>
                     <option value="pendente" {% if status == 'pendente' %}selected{% endif %}>Pendente</option>
                     <option value="realizado" {% if status == 'realizado' %}selected{% endif %}>Realizado</option>
                 </select>
             </div>
-            <div class="field" style="align-self: end;">
-                <button type="submit" class="primary-button">Aplicar</button>
+            <div class="form-field" style="align-self:end;">
+                <button type="submit" class="btn btn--primary">Aplicar</button>
             </div>
         </form>
     </div>
-</section>
+</div>
 
-<section class="table-card">
-    <div class="table-card__header">
-        <h2>Lista de Atendimentos</h2>
+<div class="data-card">
+    <div class="data-card__header">
+        <h2><span class="material-icons-outlined" style="vertical-align:middle;margin-right:8px;">assignment</span>Lista de Atendimentos</h2>
+        <span class="data-card__badge">{{ total }}</span>
     </div>
-    <div class="table-card__body">
-        <table>
+    <div class="data-card__body">
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>Nome</th>
@@ -66,11 +65,19 @@
                     <td>{{ atendimento.nome_pessoa_atendida }}</td>
                     <td>{{ atendimento.data_atendimento|date:"d/m/Y" }}</td>
                     <td>{{ atendimento.get_tipo_atendimento_display|default:"-" }}</td>
-                    <td>{{ atendimento.get_status_display }}</td>
                     <td>
-                        <a href="/atendimentos/{{ atendimento.id }}/ver" title="Ver">👁️</a>
-                        <a href="/atendimentos/{{ atendimento.id }}/editar" title="Editar" style="margin-left: 6px;">✏️</a>
-                        <a href="/atendimentos/{{ atendimento.id }}/excluir" title="Excluir" style="margin-left: 6px;">🗑️</a>
+                        {% if atendimento.status == "pendente" %}
+                            <span class="badge badge--warning">{{ atendimento.get_status_display }}</span>
+                        {% elif atendimento.status == "realizado" %}
+                            <span class="badge badge--success">{{ atendimento.get_status_display }}</span>
+                        {% else %}
+                            <span class="badge badge--muted">{{ atendimento.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="actions-cell">
+                        <a class="btn-icon" href="/atendimentos/{{ atendimento.id }}/ver" title="Ver"><span class="material-icons-outlined">visibility</span></a>
+                        <a class="btn-icon" href="/atendimentos/{{ atendimento.id }}/editar" title="Editar"><span class="material-icons-outlined">edit</span></a>
+                        <a class="btn-icon btn-icon--danger" href="/atendimentos/{{ atendimento.id }}/excluir" title="Excluir"><span class="material-icons-outlined">delete</span></a>
                     </td>
                 </tr>
                 {% empty %}
@@ -81,5 +88,5 @@
             </tbody>
         </table>
     </div>
-</section>
+</div>
 {% endblock %}

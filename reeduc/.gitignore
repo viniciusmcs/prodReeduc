@@ -11,11 +11,16 @@ venv/
 
 # Environment variables
 .env
+.env.go-live
 
 # Django
 *.log
 staticfiles/
 db.sqlite3
+
+# TLS certs and backups
+nginx/certs/
+backups/
 
 # OS
 .DS_Store

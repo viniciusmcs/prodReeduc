@@ -9,7 +9,7 @@
 <p>Tem certeza que deseja excluir <strong>{{ familiar.nome }}</strong>?</p>
 <form method="post">
     {% csrf_token %}
-    <button type="submit" class="primary-button">Confirmar</button>
-    <a class="ghost-button" href="/cadastro/familiares/{{ familiar.cadastro_id }}">Cancelar</a>
+    <button type="submit" class="btn btn--danger">Confirmar</button>
+    <a class="btn btn--ghost" href="/cadastro/familiares/{{ familiar.cadastro_id }}">Cancelar</a>
 </form>
 {% endblock %}

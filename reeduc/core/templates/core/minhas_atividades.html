@@ -6,20 +6,22 @@
 {% block nav_atividades %}active{% endblock %}
 
 {% block content %}
-<div class="activities-header">
-    <h1>Filtrando Minhas Atividades</h1>
+<div class="page-header">
+    <div>
+        <h1>Minhas Atividades</h1>
+        <p>Filtrando suas atividades registradas</p>
+    </div>
     <span class="badge">{{ total_atividades }}</span>
 </div>
 
-<section class="table-card">
-    <div class="table-card__header">
+<section class="data-card" style="margin-bottom: 16px;">
+    <div class="data-card__header">
         <h2>Filtrar</h2>
-        <span class="caret">▾</span>
     </div>
-    <div class="table-card__body">
-        <form class="grid" method="get">
-            <div class="field">
-                <label for="tipo_atividade">Selecione o tipo de Atividade</label>
+    <div class="data-card__body">
+        <form class="form-grid" method="get">
+            <div class="form-field">
+                <label for="tipo_atividade">Tipo de Atividade</label>
                 <select id="tipo_atividade" name="tipo_atividade">
                     <option value="">Selecione o tipo de Atividade</option>
                     <option value="anotacoes" {% if filtro_tipo == "anotacoes" %}selected{% endif %}>Anotações</option>
@@ -29,28 +31,28 @@
                     <option value="todos" {% if filtro_tipo == "todos" %}selected{% endif %}>Todos</option>
                 </select>
             </div>
-            <div class="field">
+            <div class="form-field">
                 <label for="data_inicio">Desde esta data</label>
                 <input type="date" id="data_inicio" name="data_inicio" value="{{ data_inicio }}" />
             </div>
-            <div class="field">
+            <div class="form-field">
                 <label for="data_fim">Até esta</label>
                 <input type="date" id="data_fim" name="data_fim" value="{{ data_fim }}" />
             </div>
-            <div class="field" style="align-self: end;">
-                <button type="submit" class="primary-button">Aplicar</button>
+            <div class="form-field" style="align-self: end;">
+                <button type="submit" class="btn btn--primary"><span class="material-icons-outlined" style="font-size:16px">filter_list</span> Aplicar</button>
             </div>
         </form>
     </div>
 </section>
 
-<section class="table-card">
-    <div class="table-card__header">
+<section class="data-card">
+    <div class="data-card__header">
         <h2>Atividades Recentes</h2>
         <span class="badge badge--danger">{{ total_atividades }}</span>
     </div>
-    <div class="table-card__body">
-        <table>
+    <div class="data-card__body">
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>Data</th>
@@ -69,13 +71,13 @@
                     <td>{{ item.egresso|default:"-" }}</td>
                     <td>
                         {% if item.acoes.ver %}
-                            <a href="{{ item.acoes.ver }}" style="color: #2563eb; text-decoration: none; margin-right: 8px;" title="Ver">👁️</a>
+                            <a class="btn-icon" href="{{ item.acoes.ver }}" title="Ver"><span class="material-icons-outlined">visibility</span></a>
                         {% endif %}
                         {% if item.acoes.editar %}
-                            <a href="{{ item.acoes.editar }}" style="color: #16a34a; text-decoration: none; margin-right: 8px;" title="Editar">✏️</a>
+                            <a class="btn-icon" href="{{ item.acoes.editar }}" title="Editar"><span class="material-icons-outlined">edit</span></a>
                         {% endif %}
                         {% if item.acoes.excluir %}
-                            <a href="{{ item.acoes.excluir }}" style="color: #dc2626; text-decoration: none;" title="Excluir">🗑️</a>
+                            <a class="btn-icon btn-icon--danger" href="{{ item.acoes.excluir }}" title="Excluir"><span class="material-icons-outlined">delete</span></a>
                         {% endif %}
                         {% if not item.acoes.ver and not item.acoes.editar and not item.acoes.excluir %}
                             <span>-</span>

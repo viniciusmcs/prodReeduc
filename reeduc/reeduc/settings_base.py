@@ -32,6 +32,20 @@ def get_env_list(name: str, default: list | None = None) -> list:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
+def is_weak_secret_key(secret_key: str | None) -> bool:
+    """Basic validation for insecure placeholder/default secret keys."""
+    if not secret_key:
+        return True
+    normalized = secret_key.strip().lower()
+    weak_values = {
+        "change-me",
+        "your-secret-key",
+        "unsafe-secret-key-for-dev-only",
+        "django-insecure",
+    }
+    return normalized in weak_values or len(secret_key.strip()) < 32
+
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "unsafe-secret-key-for-dev-only")
 
@@ -114,6 +128,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 10},
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
@@ -122,6 +137,18 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+]
+
+try:
+    import argon2  # noqa: F401
+except Exception:
+    pass
+else:
+    PASSWORD_HASHERS.insert(0, "django.contrib.auth.hashers.Argon2PasswordHasher")
 
 # Internationalization
 LANGUAGE_CODE = "pt-br"
@@ -136,6 +163,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Media files (User uploads)
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+MAX_IMAGE_UPLOAD_SIZE = 5 * 1024 * 1024  # 5 MB
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

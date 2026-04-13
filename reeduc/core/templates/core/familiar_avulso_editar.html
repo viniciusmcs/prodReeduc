@@ -148,6 +148,16 @@
                 {{ form.nome_interno_referencia }}
                 {{ form.nome_interno_referencia.errors }}
             </div>
+            <div class="form-group">
+                <label for="id_encaminhamento">Encaminhamento</label>
+                {{ form.encaminhamento }}
+                {{ form.encaminhamento.errors }}
+            </div>
+            <div class="form-group form-full-width">
+                <label for="id_encaminhamento_detalhe">Detalhes do encaminhamento</label>
+                {{ form.encaminhamento_detalhe }}
+                {{ form.encaminhamento_detalhe.errors }}
+            </div>
         </div>
     </section>
 
@@ -208,8 +218,8 @@
     </section>
 
     <div class="form-actions">
-        <button type="submit" class="primary-button">Salvar</button>
-        <a class="ghost-button" href="/familiares">Cancelar</a>
+        <button type="submit" class="btn btn--primary">Salvar</button>
+        <a class="btn btn--ghost" href="/familiares">Cancelar</a>
     </div>
 </form>
 {% endblock %}

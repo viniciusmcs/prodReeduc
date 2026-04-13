@@ -5,25 +5,39 @@
 {% block nav_cadastros %}active{% endblock %}
 
 {% block content %}
-                <h1>Cadastro: {{ cadastro.nome }}</h1>
-                <section class="table-card">
-                    <div class="table-card__body">
-                        <table>
-                            <tbody>
-                                <tr><th>Nome</th><td>{{ cadastro.nome }}</td></tr>
-                                <tr><th>Nome social</th><td>{{ cadastro.nome_social }}</td></tr>
-                                <tr><th>Data de cadastro</th><td>{{ cadastro.data_cadastro|date:"d/m/Y" }}</td></tr>
-                                <tr><th>Status</th><td>{{ cadastro.get_status_display }}</td></tr>
-                                <tr><th>CPF</th><td>{{ cadastro.cpf_numero }}</td></tr>
-                                <tr><th>RG</th><td>{{ cadastro.rg_numero }}</td></tr>
-                                <tr><th>Telefone</th><td>{{ cadastro.telefone_numero }}</td></tr>
-                                <tr><th>E-mail</th><td>{{ cadastro.email_contato }}</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-                <div class="actions">
-                    <a class="primary-button" href="/home/cadastros/{{ cadastro.id }}/editar">Editar</a>
-                    <a class="ghost-button" href="/home/cadastros">Voltar</a>
-                </div>
+<div class="page-header">
+    <h1>{{ cadastro.nome }}</h1>
+    <p>Detalhes do cadastro</p>
+</div>
+
+<div class="data-card" style="margin-bottom:24px;">
+    <div class="data-card__header">
+        <h2><span class="material-icons-outlined" style="vertical-align:middle;margin-right:8px;">person</span>Informações do Cadastro</h2>
+        {% if cadastro.status == "ativo" %}
+            <span class="badge badge--success">{{ cadastro.get_status_display }}</span>
+        {% else %}
+            <span class="badge badge--muted">{{ cadastro.get_status_display }}</span>
+        {% endif %}
+    </div>
+    <div class="data-card__body">
+        <table class="data-table">
+            <tbody>
+                <tr><th>Nome</th><td>{{ cadastro.nome }}</td></tr>
+                <tr><th>Nome social</th><td>{{ cadastro.nome_social|default:"-" }}</td></tr>
+                <tr><th>Data de cadastro</th><td>{{ cadastro.data_cadastro|date:"d/m/Y" }}</td></tr>
+                <tr><th>Status</th><td>{{ cadastro.get_status_display }}</td></tr>
+                <tr><th>CPF</th><td>{{ cadastro.cpf_numero|default:"-" }}</td></tr>
+                <tr><th>RG</th><td>{{ cadastro.rg_numero|default:"-" }}</td></tr>
+                <tr><th>Telefone</th><td>{{ cadastro.telefone_numero|default:"-" }}</td></tr>
+                <tr><th>E-mail</th><td>{{ cadastro.email_contato|default:"-" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="form-actions">
+    <a class="btn btn--primary" href="/home/cadastros/{{ cadastro.id }}/editar"><span class="material-icons-outlined" style="font-size:16px">edit</span> Editar</a>
+    <a class="btn btn--outline" href="/cadastro/perfil/{{ cadastro.id }}"><span class="material-icons-outlined" style="font-size:16px">account_circle</span> Ver Perfil</a>
+    <a class="btn btn--ghost" href="/home/cadastros"><span class="material-icons-outlined" style="font-size:16px">arrow_back</span> Voltar</a>
+</div>
 {% endblock %}

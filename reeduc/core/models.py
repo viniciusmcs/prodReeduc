@@ -213,6 +213,7 @@ class Cadastro(models.Model):
 
 class Familiar(models.Model):
     """Cadastro de familiares vinculados ao egresso."""
+    ENCAMINHAMENTO_CHOICES = Cadastro.ENCAMINHAMENTO_CHOICES
 
     cadastro = models.ForeignKey(
         Cadastro,
@@ -235,6 +236,8 @@ class Familiar(models.Model):
     perfil_referencia_egresso = models.BooleanField(default=False)
     perfil_referencia_pre_egresso = models.BooleanField(default=False)
     nome_interno_referencia = models.CharField(max_length=255, blank=True)
+    encaminhamento = models.CharField(max_length=30, choices=ENCAMINHAMENTO_CHOICES, blank=True)
+    encaminhamento_detalhe = models.TextField(blank=True)
     bairro = models.CharField(max_length=120, blank=True)
     telefone_numero = models.CharField(max_length=20, blank=True)
     telefone_contato = models.CharField(max_length=120, blank=True)

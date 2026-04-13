@@ -83,8 +83,8 @@
     <span class="view-badge">{{ atendimento.nome_pessoa_atendida }}</span>
 </div>
 
-<section class="table-card">
-    <div class="table-card__body" style="padding: 20px 30px 20px;">
+<section class="data-card">
+    <div class="data-card__body" style="padding: 20px 30px 20px;">
         <div class="detail-list">
             <div class="detail-item">
                 <strong>Nome da Pessoa Atendida</strong>
@@ -126,21 +126,21 @@
                 <strong>Status</strong>
                 <span>
                     {% if atendimento.status == "pendente" %}
-                        ⚠️ {{ atendimento.get_status_display }}
+                        <span class="badge badge--warning">{{ atendimento.get_status_display }}</span>
                     {% elif atendimento.status == "realizado" %}
-                        ✔️ {{ atendimento.get_status_display }}
+                        <span class="badge badge--success">{{ atendimento.get_status_display }}</span>
                     {% else %}
-                        {{ atendimento.get_status_display }}
+                        <span class="badge badge--muted">{{ atendimento.get_status_display }}</span>
                     {% endif %}
                 </span>
             </div>
             <div class="detail-item">
                 <strong>Ações</strong>
                 <div class="detail-actions">
-                    <a class="primary-button" href="/atendimentos/{{ atendimento.id }}/editar" style="background: transparent; border: 1px solid #555555; color: #000000;">✏️ Editar Atendimento</a>
+                    <a class="btn btn--outline btn--sm" href="/atendimentos/{{ atendimento.id }}/editar"><span class="material-icons-outlined" style="font-size:16px">edit</span> Editar</a>
                     <form method="post" action="/atendimentos/{{ atendimento.id }}/realizar" style="margin: 0;">
                         {% csrf_token %}
-                        <button type="submit" class="primary-button" style="background: transparent; border: 1px solid #555555; color: #000000;">✔️ Realizar Atendimento</button>
+                        <button type="submit" class="btn btn--primary btn--sm"><span class="material-icons-outlined" style="font-size:16px">check_circle</span> Realizar</button>
                     </form>
                 </div>
             </div>

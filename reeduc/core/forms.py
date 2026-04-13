@@ -5,9 +5,43 @@ Use ModelForms to keep validation close to the model (DRY).
 
 from django import forms
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.conf import settings
 import re
 
 from .models import Agendamento, Atendimento, Cadastro, Familiar, Lembrete, UserProfile
+
+
+def _validate_image_upload(uploaded_file):
+    """Validate uploaded image by content type, size and binary signature."""
+    if not uploaded_file:
+        return uploaded_file
+
+    from io import BytesIO
+    from PIL import Image, UnidentifiedImageError
+
+    max_size = getattr(settings, "MAX_IMAGE_UPLOAD_SIZE", 5 * 1024 * 1024)
+    if uploaded_file.size > max_size:
+        raise forms.ValidationError("A imagem excede o limite permitido (5 MB).")
+
+    if uploaded_file.content_type not in {"image/jpeg", "image/png"}:
+        raise forms.ValidationError("Envie apenas imagens PNG ou JPEG.")
+
+    try:
+        raw = uploaded_file.read()
+        image = Image.open(BytesIO(raw))
+        image.verify()
+        image_format = (image.format or "").upper()
+    except (UnidentifiedImageError, OSError, ValueError):
+        raise forms.ValidationError("Arquivo de imagem inválido.")
+    finally:
+        uploaded_file.seek(0)
+
+    if image_format not in {"JPEG", "PNG"}:
+        raise forms.ValidationError("Envie apenas imagens PNG ou JPEG.")
+
+    return uploaded_file
 
 
 class CadastroForm(forms.ModelForm):
@@ -145,6 +179,10 @@ class CadastroForm(forms.ModelForm):
         return cleaned_data
 
 
+
+    def clean_foto(self):
+        return _validate_image_upload(self.cleaned_data.get("foto"))
+
 class AtendimentoForm(forms.ModelForm):
     """Form for creating an Atendimento."""
 
@@ -280,6 +318,8 @@ class FamiliarForm(forms.ModelForm):
             "perfil_referencia_egresso",
             "perfil_referencia_pre_egresso",
             "nome_interno_referencia",
+            "encaminhamento",
+            "encaminhamento_detalhe",
             "bairro",
             "telefone_numero",
             "telefone_contato",
@@ -297,10 +337,14 @@ class FamiliarForm(forms.ModelForm):
                 }
             ),
             "nis_numero": forms.TextInput(attrs={"maxlength": "11"}),
+            "encaminhamento_detalhe": forms.Textarea(attrs={"rows": 3}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["sexo_biologico"].empty_label = "Selecione uma opcao"
+        self.fields["identidade_etnico_racial"].empty_label = "Selecione uma opcao"
+        self.fields["encaminhamento"].empty_label = "Selecione uma opcao"
         if self.instance and self.instance.documentos_possui:
             self.fields["documentos_possui"].initial = [
                 item.strip()
@@ -327,6 +371,9 @@ class FamiliarForm(forms.ModelForm):
             raise forms.ValidationError("Informe o CPF no formato 000.000.000-00.")
 
         return f"{digits[:3]}.{digits[3:6]}.{digits[6:9]}-{digits[9:]}"
+
+    def clean_foto(self):
+        return _validate_image_upload(self.cleaned_data.get("foto"))
 
     def clean(self):
         cleaned_data = super().clean()
@@ -376,6 +423,11 @@ class AdminUserCreateForm(forms.Form):
 
         if senha and senha_confirmacao and senha != senha_confirmacao:
             self.add_error("senha_confirmacao", "As senhas não conferem.")
+        elif senha:
+            try:
+                validate_password(senha)
+            except DjangoValidationError as exc:
+                self.add_error("senha", " ".join(exc.messages))
 
         username = cleaned_data.get("username")
         if username:
@@ -402,3 +454,6 @@ class AdminUserCreateForm(forms.Form):
 
         UserProfile.objects.create(user=user, cargo_es=self.cleaned_data["cargo_es"])
         return user
+
+
+

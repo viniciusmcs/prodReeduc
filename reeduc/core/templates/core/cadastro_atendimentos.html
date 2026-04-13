@@ -19,13 +19,13 @@
                     <a class="tab nav-link" href="/cadastro/agendamentos/{{ cadastro.id }}">Agendamentos</a>
                 </div>
 
-                <section class="table-card">
-                    <div class="table-card__header">
+                <section class="data-card">
+                    <div class="data-card__header">
                         <h2>Atendimentos</h2>
                         <span class="badge">{{ atendimentos|length }}</span>
                     </div>
-                    <div class="table-card__body">
-                        <table>
+                    <div class="data-card__body">
+                        <table class="data-table">
                             <thead>
                                 <tr>
                                     <th>Data</th>
@@ -39,9 +39,17 @@
                                 <tr>
                                     <td>{{ atendimento.data_atendimento|date:"d/m/Y" }}</td>
                                     <td>{{ atendimento.get_tipo_atendimento_display|default:"-" }}</td>
-                                    <td>{{ atendimento.get_status_display }}</td>
                                     <td>
-                                        <a href="/atendimentos/{{ atendimento.id }}/ver" title="Ver">👁️</a>
+                                        {% if atendimento.status == "pendente" %}
+                                            <span class="badge badge--warning">{{ atendimento.get_status_display }}</span>
+                                        {% elif atendimento.status == "realizado" %}
+                                            <span class="badge badge--success">{{ atendimento.get_status_display }}</span>
+                                        {% else %}
+                                            <span class="badge badge--muted">{{ atendimento.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a class="btn-icon" href="/atendimentos/{{ atendimento.id }}/ver" title="Ver"><span class="material-icons-outlined">visibility</span></a>
                                     </td>
                                 </tr>
                                 {% empty %}

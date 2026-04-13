@@ -6,10 +6,15 @@
 {% block nav_admin %}active{% endblock %}
 
 {% block content %}
-<h1>Usuários do Sistema</h1>
-<section class="table-card">
-    <div class="table-card__body">
-        <table>
+<div class="page-header">
+    <div>
+        <h1>Usuários do Sistema</h1>
+        <p>Gerenciamento de usuários</p>
+    </div>
+</div>
+<section class="data-card">
+    <div class="data-card__body">
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>Nome</th>
@@ -25,11 +30,22 @@
                     <td>{{ user.get_full_name|default:user.username }}</td>
                     <td>{{ user.username }}</td>
                     <td>{{ user.email }}</td>
-                    <td>{% if user.is_active %}Ativo{% else %}Inativo{% endif %}</td>
+                    <td>
+                        {% if user.is_active %}
+                            <span class="badge badge--success">Ativo</span>
+                        {% else %}
+                            <span class="badge badge--muted">Inativo</span>
+                        {% endif %}
+                    </td>
                     <td class="actions-cell">
-                        <a class="icon-button" href="/administrar/usuarios/{{ user.id }}/detalhes" title="Ver detalhes">👁</a>
-                        <a class="icon-button" href="/administrar/usuarios/{{ user.id }}/toggle" title="Ativar/Desativar">⏻</a>
-                        <a class="icon-button icon-button--danger" href="/administrar/usuarios/{{ user.id }}/excluir" title="Excluir">🗑</a>
+                        <a class="btn-icon" href="/administrar/usuarios/{{ user.id }}/detalhes" title="Ver detalhes"><span class="material-icons-outlined">visibility</span></a>
+                        <form method="post" action="/administrar/usuarios/{{ user.id }}/toggle" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-icon" title="Ativar/Desativar" style="border:0;background:none;padding:0;cursor:pointer;">
+                                <span class="material-icons-outlined">power_settings_new</span>
+                            </button>
+                        </form>
+                        <a class="btn-icon btn-icon--danger" href="/administrar/usuarios/{{ user.id }}/excluir" title="Excluir"><span class="material-icons-outlined">delete</span></a>
                     </td>
                 </tr>
                 {% empty %}

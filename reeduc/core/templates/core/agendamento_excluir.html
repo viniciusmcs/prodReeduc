@@ -11,9 +11,9 @@
                     <strong>Atenção!</strong> Você está prestes a excluir o agendamento abaixo. Esta ação não pode ser desfeita.
                 </div>
 
-                <section class="table-card">
-                    <div class="table-card__body">
-                        <table>
+                <section class="data-card">
+                    <div class="data-card__body">
+                        <table class="data-table">
                             <tbody>
                                 <tr><th>Nome do Atendido</th><td>{{ agendamento.nome_atendido }}</td></tr>
                                 <tr><th>Data do Agendamento</th><td>{{ agendamento.data_agendamento|date:"d/m/Y" }}</td></tr>
@@ -28,8 +28,8 @@
                 <form method="post" style="margin-top: 24px;">
                     {% csrf_token %}
                     <div style="display: flex; gap: 10px;">
-                        <button type="submit" class="primary-button">Confirmar Exclusão</button>
-                        <a href="/agendamentos" class="ghost-button">Cancelar</a>
+                        <button type="submit" class="btn btn--danger">Confirmar Exclusão</button>
+                        <a href="/agendamentos" class="btn btn--ghost">Cancelar</a>
                     </div>
                 </form>
 {% endblock %}

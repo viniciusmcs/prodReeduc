@@ -10,7 +10,7 @@
 
 <form method="post" style="margin-top: 12px;">
     {% csrf_token %}
-    <button class="primary-button" type="submit">Confirmar exclusão</button>
-    <a class="ghost-button" href="/familiares">Cancelar</a>
+    <button class="btn btn--danger" type="submit">Confirmar exclusão</button>
+    <a class="btn btn--ghost" href="/familiares">Cancelar</a>
 </form>
 {% endblock %}

@@ -4,19 +4,73 @@ Keep views thin: business logic stays minimal and delegated.
 """
 
 from datetime import datetime
+from uuid import uuid4
 
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, models as db_models
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from .forms import AdminUserCreateForm, AgendamentoForm, AtendimentoForm, CadastroForm, FamiliarForm, LembreteForm
 from django.utils.dateparse import parse_date
 
 from .models import Agendamento, Atendimento, Cadastro, Familiar, Lembrete, UserProfile
+
+MAX_IMAGE_UPLOAD_SIZE = getattr(settings, "MAX_IMAGE_UPLOAD_SIZE", 5 * 1024 * 1024)
+
+
+def _get_safe_redirect_target(request, target: str | None, default: str = "/home/") -> str:
+    """Allow redirect only to local/safe URLs."""
+    candidate = (target or "").strip()
+    if not candidate:
+        return default
+
+    if url_has_allowed_host_and_scheme(
+        url=candidate,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return candidate
+
+    return default
+
+
+def _validate_uploaded_image_file(uploaded_file):
+    """Validate image type/size/content and normalize the filename."""
+    from io import BytesIO
+    from PIL import Image, UnidentifiedImageError
+
+    if uploaded_file.size > MAX_IMAGE_UPLOAD_SIZE:
+        return False, "A imagem excede o limite permitido (5 MB)."
+
+    valid_content_types = {"image/jpeg", "image/png"}
+    if uploaded_file.content_type not in valid_content_types:
+        return False, "Por favor, selecione apenas arquivos PNG ou JPEG."
+
+    try:
+        raw_bytes = uploaded_file.read()
+        image = Image.open(BytesIO(raw_bytes))
+        image.verify()
+        image_format = (image.format or "").upper()
+    except (UnidentifiedImageError, OSError, ValueError):
+        return False, "Arquivo de imagem inválido."
+    finally:
+        uploaded_file.seek(0)
+
+    if image_format not in {"JPEG", "PNG"}:
+        return False, "Por favor, selecione apenas arquivos PNG ou JPEG."
+
+    ext = ".jpg" if image_format == "JPEG" else ".png"
+    uploaded_file.name = f"{uuid4().hex}{ext}"
+    return True, None
+
 
 def home_redirect(request):
     """Redirect root URL to the login screen with redirect parameter."""
@@ -238,19 +292,15 @@ def familiar_ver_view(request, familiar_id: int):
 @login_required
 def familiar_upload_foto_view(request, familiar_id: int):
     """Handle photo upload for a familiar."""
-    from django.http import JsonResponse
-
     familiar = get_object_or_404(Familiar, id=familiar_id)
 
     if request.method == "POST" and request.FILES.get("foto"):
         foto = request.FILES["foto"]
 
-        valid_extensions = [".png", ".jpeg", ".jpg"]
-        file_ext = "." + foto.name.split(".")[-1].lower() if "." in foto.name else ""
-
-        if file_ext not in valid_extensions:
+        is_valid, error_message = _validate_uploaded_image_file(foto)
+        if not is_valid:
             return JsonResponse(
-                {"status": "error", "message": "Por favor, selecione apenas arquivos PNG ou JPEG"},
+                {"status": "error", "message": error_message},
                 status=400,
             )
 
@@ -384,28 +434,32 @@ def familiar_avulso_excluir_view(request, familiar_id: int):
 @login_required
 def cadastro_upload_foto_view(request, cadastro_id: int):
     """Handle photo upload for a cadastro."""
-    import json
-    from django.http import JsonResponse
-    
     cadastro = get_object_or_404(Cadastro, id=cadastro_id)
     
+    if request.method == "POST" and request.POST.get("remover_foto") == "1":
+        if cadastro.foto:
+            cadastro.foto.delete(save=False)
+        cadastro.foto = None
+        cadastro.save()
+        return JsonResponse({
+            "status": "success",
+            "message": "Foto removida com sucesso",
+            "foto_url": None,
+        })
+
     if request.method == "POST" and request.FILES.get("foto"):
         foto = request.FILES["foto"]
-        
-        # Validar extensão
-        valid_extensions = [".png", ".jpeg", ".jpg"]
-        file_ext = "." + foto.name.split(".")[-1].lower() if "." in foto.name else ""
-        
-        if file_ext not in valid_extensions:
+
+        is_valid, error_message = _validate_uploaded_image_file(foto)
+        if not is_valid:
             return JsonResponse({
                 "status": "error",
-                "message": "Por favor, selecione apenas arquivos PNG ou JPEG"
+                "message": error_message,
             }, status=400)
-        
-        # Salvar foto
+
         cadastro.foto = foto
         cadastro.save()
-        
+
         return JsonResponse({
             "status": "success",
             "message": "Foto enviada com sucesso",
@@ -706,6 +760,11 @@ def user_profile_password_view(request, username: str):
             password_error = "Informe a nova senha."
         elif new_password != confirm_password:
             password_error = "As senhas não conferem."
+        else:
+            try:
+                validate_password(new_password, request.user)
+            except ValidationError as exc:
+                password_error = " ".join(exc.messages)
 
         if not password_error:
             request.user.set_password(new_password)
@@ -914,6 +973,7 @@ def admin_user_detail_view(request, user_id: int):
 
 @login_required
 @user_passes_test(is_admin_user)
+@require_POST
 def admin_user_toggle_active_view(request, user_id: int):
     """Activate or deactivate a user account."""
     User = get_user_model()
@@ -986,12 +1046,12 @@ def agendamentos_dashboard_view(request):
 def login_view(request):
     """Render login page and authenticate user credentials."""
     # Read redirect target from query string first (GET).
-    redirect_to = request.GET.get("redirect", "/home/")
+    redirect_to = _get_safe_redirect_target(request, request.GET.get("redirect"), "/home/")
     error = None
 
     if request.method == "POST":
         # For POST, respect hidden redirect field from the form.
-        redirect_to = request.POST.get("redirect", "/home/")
+        redirect_to = _get_safe_redirect_target(request, request.POST.get("redirect"), "/home/")
         username = request.POST.get("username", "").strip()
         password = request.POST.get("password", "")
 
@@ -1311,3 +1371,4 @@ def relatorios_pdf_view(request):
     filename = f"relatorio_espi_{now.strftime('%Y%m%d_%H%M')}.pdf"
     response["Content-Disposition"] = f'inline; filename="{filename}"'
     return response
+

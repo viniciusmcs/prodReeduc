@@ -19,13 +19,13 @@
                     <a class="tab nav-link active" href="/cadastro/agendamentos/{{ cadastro.id }}">Agendamentos</a>
                 </div>
 
-                <section class="table-card">
-                    <div class="table-card__header">
+                <section class="data-card">
+                    <div class="data-card__header">
                         <h2>Agendamentos</h2>
                         <span class="badge">{{ agendamentos|length }}</span>
                     </div>
-                    <div class="table-card__body">
-                        <table>
+                    <div class="data-card__body">
+                        <table class="data-table">
                             <thead>
                                 <tr>
                                     <th>Data</th>
@@ -41,7 +41,7 @@
                                     <td>{{ agendamento.get_tipo_agendamento_display|default:"-" }}</td>
                                     <td>{{ agendamento.horario_atendimento|default:"-" }}</td>
                                     <td>
-                                        <a href="/agendamentos/{{ agendamento.id }}/ver" title="Ver">👁️</a>
+                                        <a class="btn-icon" href="/agendamentos/{{ agendamento.id }}/ver" title="Ver"><span class="material-icons-outlined">visibility</span></a>
                                     </td>
                                 </tr>
                                 {% empty %}

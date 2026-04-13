@@ -34,12 +34,18 @@
 
     <div class="perfil-sections">
         <div class="perfil-documentos">
-            <h3>📞 Contato</h3>
+            <h3><span class="material-icons-outlined" style="font-size:18px;vertical-align:middle;margin-right:6px;">phone</span> Contato</h3>
             <p><strong>Bairro:</strong> {{ familiar.bairro|default:"-" }}</p>
             <p><strong>Telefone:</strong> {{ familiar.telefone_numero|default:"-" }}</p>
             <p><strong>Contato:</strong> {{ familiar.telefone_contato|default:"-" }}</p>
             <p><strong>Observações:</strong> {{ familiar.telefone_observacao|default:"-" }}</p>
             <p><strong>E-mail:</strong> {{ familiar.email_contato|default:"-" }}</p>
+        </div>
+
+        <div class="perfil-documentos">
+            <h3>Encaminhamentos</h3>
+            <p><strong>Encaminhamento:</strong> {{ familiar.get_encaminhamento_display|default:"-" }}</p>
+            <p><strong>Detalhes:</strong> {{ familiar.encaminhamento_detalhe|default:"-" }}</p>
         </div>
 
         <div class="perfil-documentos">
@@ -66,9 +72,9 @@
     </div>
 
     <div class="perfil-actions-row">
-        <a class="primary-button" href="/familiares/{{ familiar.id }}/editar">Editar</a>
-        <a class="ghost-button" href="/familiares/{{ familiar.id }}/excluir">Excluir</a>
-        <a class="ghost-button" href="/familiares">Voltar</a>
+        <a class="btn btn--primary" href="/familiares/{{ familiar.id }}/editar">Editar</a>
+        <a class="btn btn--outline" href="/familiares/{{ familiar.id }}/excluir">Excluir</a>
+        <a class="btn btn--ghost" href="/familiares">Voltar</a>
     </div>
 </section>
 {% endblock %}

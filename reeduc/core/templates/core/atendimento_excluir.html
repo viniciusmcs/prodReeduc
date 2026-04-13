@@ -12,9 +12,9 @@
     <strong>Atenção!</strong> Você está prestes a excluir o atendimento abaixo. Esta ação não pode ser desfeita.
 </div>
 
-<section class="table-card">
-    <div class="table-card__body">
-        <table>
+<section class="data-card">
+    <div class="data-card__body">
+        <table class="data-table">
             <tbody>
                 <tr><th>Nome da Pessoa</th><td>{{ atendimento.nome_pessoa_atendida }}</td></tr>
                 <tr><th>Data</th><td>{{ atendimento.data_atendimento|date:"d/m/Y" }}</td></tr>
@@ -29,8 +29,8 @@
 <form method="post" style="margin-top: 24px;">
     {% csrf_token %}
     <div style="display: flex; gap: 10px;">
-        <button type="submit" class="primary-button">Confirmar Exclusão</button>
-        <a href="/home/" class="ghost-button">Cancelar</a>
+        <button type="submit" class="btn btn--danger">Confirmar Exclusão</button>
+        <a href="/home/" class="btn btn--ghost">Cancelar</a>
     </div>
 </form>
 {% endblock %}

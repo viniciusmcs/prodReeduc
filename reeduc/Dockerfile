@@ -2,6 +2,7 @@ FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PORT=8000
 
 WORKDIR /app
 
@@ -26,5 +27,5 @@ RUN mkdir -p /app/media/cadastros /app/media/familiares
 
 EXPOSE 8000
 
-# Run migrations, create default admin, then start gunicorn
-CMD ["sh", "-c", "python manage.py migrate --noinput && python -c \"import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE','reeduc.settings_prod'); import django; django.setup(); from core.default_admin import create_default_admin; create_default_admin()\" 2>/dev/null; gunicorn reeduc.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120"]
+# Run migrations, collect static, create default admin, then start gunicorn
+CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && python -c \"import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE','reeduc.settings_prod'); import django; django.setup(); from core.default_admin import create_default_admin; create_default_admin()\" 2>/dev/null; gunicorn reeduc.wsgi:application --bind 0.0.0.0:${PORT} --workers 3 --timeout 120"]

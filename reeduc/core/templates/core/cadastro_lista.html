@@ -5,37 +5,51 @@
 {% block nav_cadastros %}active{% endblock %}
 
 {% block content %}
-                <h1>Cadastros - {{ filtro }}</h1>
-                <section class="table-card">
-                    <div class="table-card__body">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nome</th>
-                                    <th>Data de cadastro</th>
-                                    <th>Status</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for cadastro in cadastros %}
-                                <tr>
-                                    <td>{{ cadastro.nome }}</td>
-                                    <td>{{ cadastro.data_cadastro|date:"d/m/Y" }}</td>
-                                    <td>{{ cadastro.get_status_display }}</td>
-                                    <td class="actions-cell">
-                                        <a class="icon-button" href="/cadastro/perfil/{{ cadastro.id }}" title="Ver cadastro">👁</a>
-                                        <a class="icon-button" href="/home/cadastros/{{ cadastro.id }}/editar" title="Editar cadastro">✏</a>
-                                        <a class="icon-button icon-button--danger" href="/home/cadastros/{{ cadastro.id }}/excluir" title="Excluir cadastro">🗑</a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4">Nenhum cadastro encontrado.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
+<div class="page-header">
+    <h1>Cadastros — {{ filtro }}</h1>
+    <p>Gerencie os cadastros de egressos do sistema.</p>
+</div>
+
+<div class="data-card">
+    <div class="data-card__header">
+        <h2><span class="material-icons-outlined" style="vertical-align:middle;margin-right:8px;">people</span>Lista de Cadastros</h2>
+        <a href="/home/cadastro/adicionar" class="btn btn--primary btn--sm"><span class="material-icons-outlined" style="font-size:16px">add</span> Novo</a>
+    </div>
+    <div class="data-card__body">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Data de cadastro</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cadastro in cadastros %}
+                <tr>
+                    <td><a href="/cadastro/perfil/{{ cadastro.id }}">{{ cadastro.nome }}</a></td>
+                    <td>{{ cadastro.data_cadastro|date:"d/m/Y" }}</td>
+                    <td>
+                        {% if cadastro.status == "ativo" %}
+                            <span class="badge badge--success">{{ cadastro.get_status_display }}</span>
+                        {% else %}
+                            <span class="badge badge--muted">{{ cadastro.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="actions-cell">
+                        <a class="btn-icon" href="/cadastro/perfil/{{ cadastro.id }}" title="Ver cadastro"><span class="material-icons-outlined">visibility</span></a>
+                        <a class="btn-icon" href="/home/cadastros/{{ cadastro.id }}/editar" title="Editar cadastro"><span class="material-icons-outlined">edit</span></a>
+                        <a class="btn-icon btn-icon--danger" href="/home/cadastros/{{ cadastro.id }}/excluir" title="Excluir cadastro"><span class="material-icons-outlined">delete</span></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="empty-state">Nenhum cadastro encontrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

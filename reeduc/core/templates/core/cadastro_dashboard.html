@@ -5,88 +5,90 @@
 {% block nav_cadastros %}active{% endblock %}
 
 {% block content %}
-                <div class="activities-header">
-                    <h1>Usuários cadastrados</h1>
-                    <span class="badge">{{ total }}</span>
-                </div>
+<div class="page-header">
+    <h1>Usuários cadastrados</h1>
+    <p>Visualize e gerencie todos os cadastros do sistema.</p>
+    <div class="page-header__actions">
+        <a class="btn btn--primary btn--sm" href="/home/cadastro/adicionar"><span class="material-icons-outlined" style="font-size:16px">add</span> Criar Novo Cadastro</a>
+    </div>
+</div>
 
-                <div class="links-row">
-                    <a href="/home/cadastro/adicionar">Criar Novo Cadastro</a>
-                    <a href="#ativos">Mostrar Cadastros Ativos</a>
-                    <a href="#arquivados">Mostrar Cadastros Arquivados</a>
-                </div>
+<div class="quick-actions" style="margin-bottom:16px;">
+    <a class="quick-action" href="#ativos"><span class="material-icons-outlined">check_circle</span> Cadastros Ativos</a>
+    <a class="quick-action" href="#arquivados"><span class="material-icons-outlined">archive</span> Cadastros Arquivados</a>
+</div>
 
-                <form class="search-form" method="get">
-                    <input type="text" name="q" placeholder="Digite para buscar..." value="{{ query }}" />
-                </form>
+<form class="search-form" method="get">
+    <input type="text" name="q" placeholder="Buscar cadastro por nome..." value="{{ query }}" />
+</form>
 
-                <section id="ativos" class="table-card">
-                    <div class="table-card__header">
-                        <h2>Cadastros Ativos</h2>
-                        <span class="badge">{{ ativos|length }}</span>
-                    </div>
-                    <div class="table-card__body">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nome</th>
-                                    <th>Data de cadastro</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for cadastro in ativos %}
-                                <tr>
-                                    <td>{{ cadastro.nome }}</td>
-                                    <td>{{ cadastro.data_cadastro|date:"d/m/Y" }}</td>
-                                    <td class="actions-cell">
-                                        <a class="icon-button" href="/cadastro/perfil/{{ cadastro.id }}" title="Ver cadastro">👁</a>
-                                        <a class="icon-button" href="/home/cadastros/{{ cadastro.id }}/editar" title="Editar cadastro">✏</a>
-                                        <a class="icon-button" href="/home/cadastros/{{ cadastro.id }}/excluir" title="Excluir cadastro">🗑</a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="3">Nenhum cadastro ativo encontrado.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
+<div id="ativos" class="data-card" style="margin-bottom:24px;">
+    <div class="data-card__header">
+        <h2><span class="material-icons-outlined" style="vertical-align:middle;margin-right:8px;">check_circle</span>Cadastros Ativos</h2>
+        <span class="data-card__badge data-card__badge--success">{{ ativos|length }}</span>
+    </div>
+    <div class="data-card__body">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Data de cadastro</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cadastro in ativos %}
+                <tr>
+                    <td><a href="/cadastro/perfil/{{ cadastro.id }}">{{ cadastro.nome }}</a></td>
+                    <td>{{ cadastro.data_cadastro|date:"d/m/Y" }}</td>
+                    <td class="actions-cell">
+                        <a class="btn-icon" href="/cadastro/perfil/{{ cadastro.id }}" title="Ver cadastro"><span class="material-icons-outlined">visibility</span></a>
+                        <a class="btn-icon" href="/home/cadastros/{{ cadastro.id }}/editar" title="Editar cadastro"><span class="material-icons-outlined">edit</span></a>
+                        <a class="btn-icon btn-icon--danger" href="/home/cadastros/{{ cadastro.id }}/excluir" title="Excluir cadastro"><span class="material-icons-outlined">delete</span></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3">Nenhum cadastro ativo encontrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
-                <section id="arquivados" class="table-card">
-                    <div class="table-card__header">
-                        <h2>Cadastros Arquivados</h2>
-                        <span class="badge">{{ arquivados|length }}</span>
-                    </div>
-                    <div class="table-card__body">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nome</th>
-                                    <th>Data de cadastro</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for cadastro in arquivados %}
-                                <tr>
-                                    <td>{{ cadastro.nome }}</td>
-                                    <td>{{ cadastro.data_cadastro|date:"d/m/Y" }}</td>
-                                    <td class="actions-cell">
-                                        <a class="icon-button" href="/cadastro/perfil/{{ cadastro.id }}" title="Ver cadastro">👁</a>
-                                        <a class="icon-button" href="/home/cadastros/{{ cadastro.id }}/editar" title="Editar cadastro">✏</a>
-                                        <a class="icon-button" href="/home/cadastros/{{ cadastro.id }}/excluir" title="Excluir cadastro">🗑</a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="3">Nenhum cadastro arquivado encontrado.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
+<div id="arquivados" class="data-card">
+    <div class="data-card__header">
+        <h2><span class="material-icons-outlined" style="vertical-align:middle;margin-right:8px;">archive</span>Cadastros Arquivados</h2>
+        <span class="data-card__badge">{{ arquivados|length }}</span>
+    </div>
+    <div class="data-card__body">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Data de cadastro</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cadastro in arquivados %}
+                <tr>
+                    <td><a href="/cadastro/perfil/{{ cadastro.id }}">{{ cadastro.nome }}</a></td>
+                    <td>{{ cadastro.data_cadastro|date:"d/m/Y" }}</td>
+                    <td class="actions-cell">
+                        <a class="btn-icon" href="/cadastro/perfil/{{ cadastro.id }}" title="Ver cadastro"><span class="material-icons-outlined">visibility</span></a>
+                        <a class="btn-icon" href="/home/cadastros/{{ cadastro.id }}/editar" title="Editar cadastro"><span class="material-icons-outlined">edit</span></a>
+                        <a class="btn-icon btn-icon--danger" href="/home/cadastros/{{ cadastro.id }}/excluir" title="Excluir cadastro"><span class="material-icons-outlined">delete</span></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3">Nenhum cadastro arquivado encontrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}
