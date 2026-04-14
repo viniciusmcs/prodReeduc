@@ -18,10 +18,18 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .forms import AdminUserCreateForm, AgendamentoForm, AtendimentoForm, CadastroForm, FamiliarForm, LembreteForm
+from .forms import (
+    AdminUserCreateForm,
+    AgendamentoForm,
+    AtendimentoForm,
+    CadastroForm,
+    FamiliarForm,
+    LembreteForm,
+    SetorJuridicoForm,
+)
 from django.utils.dateparse import parse_date
 
-from .models import Agendamento, Atendimento, Cadastro, Familiar, Lembrete, UserProfile
+from .models import Agendamento, Atendimento, Cadastro, Familiar, Lembrete, SetorJuridico, UserProfile
 
 MAX_IMAGE_UPLOAD_SIZE = getattr(settings, "MAX_IMAGE_UPLOAD_SIZE", 5 * 1024 * 1024)
 
@@ -251,6 +259,119 @@ def cadastro_agendamentos_view(request, cadastro_id: int):
     )
 
 
+def _build_encaminhamentos_display(registro: SetorJuridico) -> list[str]:
+    label_map = dict(SetorJuridico.ENCAMINHAMENTO_SETOR_CHOICES)
+    values = [item.strip() for item in (registro.encaminhamentos_setor or "").split(",") if item.strip()]
+    labels = [label_map.get(value, value) for value in values]
+    if registro.encaminhamentos_setor_outro:
+        labels.append(f"Outro: {registro.encaminhamentos_setor_outro}")
+    return labels
+
+
+def _build_situacao_display(registro: SetorJuridico) -> list[str]:
+    label_map = dict(SetorJuridico.SITUACAO_JURIDICA_CHOICES)
+    values = [item.strip() for item in (registro.situacao_juridica_atual or "").split(",") if item.strip()]
+    labels = [label_map.get(value, value) for value in values]
+    if registro.situacao_juridica_outro:
+        labels.append(f"Outro: {registro.situacao_juridica_outro}")
+    return labels
+
+
+@login_required
+def cadastro_setor_juridico_view(request, cadastro_id: int):
+    """Render and manage setor juridico records for cadastro."""
+    cadastro = get_object_or_404(Cadastro, id=cadastro_id)
+
+    if request.method == "POST" and request.POST.get("setor_juridico_form") == "1":
+        form = SetorJuridicoForm(request.POST, request.FILES)
+        if form.is_valid():
+            registro = form.save(commit=False)
+            registro.cadastro = cadastro
+            registro.familiar = None
+            registro.save()
+            return redirect("cadastro-setor-juridico", cadastro_id=cadastro.id)
+    else:
+        form = SetorJuridicoForm()
+
+    registros = cadastro.setor_juridico_registros.all().order_by("-data_criacao")
+    for registro in registros:
+        registro.situacao_display = _build_situacao_display(registro)
+        registro.encaminhamentos_display = _build_encaminhamentos_display(registro)
+
+    return render(
+        request,
+        "core/cadastro_setor_juridico.html",
+        {
+            "cadastro": cadastro,
+            "registros": registros,
+            "form": form,
+        },
+    )
+
+
+@login_required
+def cadastro_setor_juridico_ver_view(request, cadastro_id: int, registro_id: int):
+    cadastro = get_object_or_404(Cadastro, id=cadastro_id)
+    registro = get_object_or_404(SetorJuridico, id=registro_id, cadastro_id=cadastro.id)
+    registro.situacao_display = _build_situacao_display(registro)
+    registro.encaminhamentos_display = _build_encaminhamentos_display(registro)
+    return render(
+        request,
+        "core/setor_juridico_ver.html",
+        {
+            "registro": registro,
+            "cadastro": cadastro,
+            "voltar_url": f"/cadastro/setor-juridico/{cadastro.id}",
+            "editar_url": f"/cadastro/setor-juridico/{cadastro.id}/{registro.id}/editar",
+            "excluir_url": f"/cadastro/setor-juridico/{cadastro.id}/{registro.id}/excluir",
+            "is_familiar_avulso": False,
+        },
+    )
+
+
+@login_required
+def cadastro_setor_juridico_editar_view(request, cadastro_id: int, registro_id: int):
+    cadastro = get_object_or_404(Cadastro, id=cadastro_id)
+    registro = get_object_or_404(SetorJuridico, id=registro_id, cadastro_id=cadastro.id)
+    if request.method == "POST":
+        form = SetorJuridicoForm(request.POST, request.FILES, instance=registro)
+        if form.is_valid():
+            form.save()
+            return redirect("cadastro-setor-juridico", cadastro_id=cadastro.id)
+    else:
+        form = SetorJuridicoForm(instance=registro)
+    return render(
+        request,
+        "core/setor_juridico_editar.html",
+        {
+            "form": form,
+            "registro": registro,
+            "cadastro": cadastro,
+            "voltar_url": f"/cadastro/setor-juridico/{cadastro.id}",
+            "is_familiar_avulso": False,
+        },
+    )
+
+
+@login_required
+def cadastro_setor_juridico_excluir_view(request, cadastro_id: int, registro_id: int):
+    cadastro = get_object_or_404(Cadastro, id=cadastro_id)
+    registro = get_object_or_404(SetorJuridico, id=registro_id, cadastro_id=cadastro.id)
+    if request.method == "POST":
+        registro.delete()
+        return redirect("cadastro-setor-juridico", cadastro_id=cadastro.id)
+    return render(
+        request,
+        "core/setor_juridico_excluir.html",
+        {
+            "registro": registro,
+            "cadastro": cadastro,
+            "voltar_url": f"/cadastro/setor-juridico/{cadastro.id}",
+            "is_familiar_avulso": False,
+        },
+    )
+
+
 @login_required
 def familiar_ver_view(request, familiar_id: int):
     """View familiar details."""
@@ -396,6 +517,101 @@ def familiar_avulso_ver_view(request, familiar_id: int):
             "familiar": familiar,
             "documentos_possui": documentos_possui,
             "documentos_ausentes": documentos_ausentes,
+        },
+    )
+
+
+@login_required
+def familiar_avulso_setor_juridico_view(request, familiar_id: int):
+    """Render and manage setor juridico records for familiar without cadastro."""
+    familiar = get_object_or_404(Familiar, id=familiar_id, cadastro__isnull=True)
+
+    if request.method == "POST" and request.POST.get("setor_juridico_form") == "1":
+        form = SetorJuridicoForm(request.POST, request.FILES)
+        if form.is_valid():
+            registro = form.save(commit=False)
+            registro.cadastro = None
+            registro.familiar = familiar
+            registro.save()
+            return redirect("familiar-avulso-setor-juridico", familiar_id=familiar.id)
+    else:
+        form = SetorJuridicoForm()
+
+    registros = familiar.setor_juridico_registros.all().order_by("-data_criacao")
+    for registro in registros:
+        registro.situacao_display = _build_situacao_display(registro)
+        registro.encaminhamentos_display = _build_encaminhamentos_display(registro)
+
+    return render(
+        request,
+        "core/familiar_avulso_setor_juridico.html",
+        {
+            "familiar": familiar,
+            "registros": registros,
+            "form": form,
+        },
+    )
+
+
+@login_required
+def familiar_avulso_setor_juridico_ver_view(request, familiar_id: int, registro_id: int):
+    familiar = get_object_or_404(Familiar, id=familiar_id, cadastro__isnull=True)
+    registro = get_object_or_404(SetorJuridico, id=registro_id, familiar_id=familiar.id, cadastro__isnull=True)
+    registro.situacao_display = _build_situacao_display(registro)
+    registro.encaminhamentos_display = _build_encaminhamentos_display(registro)
+    return render(
+        request,
+        "core/setor_juridico_ver.html",
+        {
+            "registro": registro,
+            "familiar": familiar,
+            "voltar_url": f"/familiares/{familiar.id}/setor-juridico",
+            "editar_url": f"/familiares/{familiar.id}/setor-juridico/{registro.id}/editar",
+            "excluir_url": f"/familiares/{familiar.id}/setor-juridico/{registro.id}/excluir",
+            "is_familiar_avulso": True,
+        },
+    )
+
+
+@login_required
+def familiar_avulso_setor_juridico_editar_view(request, familiar_id: int, registro_id: int):
+    familiar = get_object_or_404(Familiar, id=familiar_id, cadastro__isnull=True)
+    registro = get_object_or_404(SetorJuridico, id=registro_id, familiar_id=familiar.id, cadastro__isnull=True)
+    if request.method == "POST":
+        form = SetorJuridicoForm(request.POST, request.FILES, instance=registro)
+        if form.is_valid():
+            form.save()
+            return redirect("familiar-avulso-setor-juridico", familiar_id=familiar.id)
+    else:
+        form = SetorJuridicoForm(instance=registro)
+    return render(
+        request,
+        "core/setor_juridico_editar.html",
+        {
+            "form": form,
+            "registro": registro,
+            "familiar": familiar,
+            "voltar_url": f"/familiares/{familiar.id}/setor-juridico",
+            "is_familiar_avulso": True,
+        },
+    )
+
+
+@login_required
+def familiar_avulso_setor_juridico_excluir_view(request, familiar_id: int, registro_id: int):
+    familiar = get_object_or_404(Familiar, id=familiar_id, cadastro__isnull=True)
+    registro = get_object_or_404(SetorJuridico, id=registro_id, familiar_id=familiar.id, cadastro__isnull=True)
+    if request.method == "POST":
+        registro.delete()
+        return redirect("familiar-avulso-setor-juridico", familiar_id=familiar.id)
+    return render(
+        request,
+        "core/setor_juridico_excluir.html",
+        {
+            "registro": registro,
+            "familiar": familiar,
+            "voltar_url": f"/familiares/{familiar.id}/setor-juridico",
+            "is_familiar_avulso": True,
         },
     )
 

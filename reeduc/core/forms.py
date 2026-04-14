@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.conf import settings
 import re
 
-from .models import Agendamento, Atendimento, Cadastro, Familiar, Lembrete, UserProfile
+from .models import Agendamento, Atendimento, Cadastro, Familiar, Lembrete, SetorJuridico, UserProfile
 
 
 def _validate_image_upload(uploaded_file):
@@ -40,6 +40,27 @@ def _validate_image_upload(uploaded_file):
 
     if image_format not in {"JPEG", "PNG"}:
         raise forms.ValidationError("Envie apenas imagens PNG ou JPEG.")
+
+    return uploaded_file
+
+
+def _validate_pdf_upload(uploaded_file):
+    """Validate uploaded PDF by extension, content-type and size."""
+    if not uploaded_file:
+        return uploaded_file
+
+    max_size = 10 * 1024 * 1024
+    if uploaded_file.size > max_size:
+        raise forms.ValidationError("O arquivo PDF excede o limite permitido (10 MB).")
+
+    file_name = (uploaded_file.name or "").lower()
+    if not file_name.endswith(".pdf"):
+        raise forms.ValidationError("Envie apenas arquivo no formato PDF.")
+
+    content_type = (uploaded_file.content_type or "").lower()
+    valid_types = {"application/pdf", "application/x-pdf"}
+    if content_type and content_type not in valid_types:
+        raise forms.ValidationError("Envie apenas arquivo no formato PDF.")
 
     return uploaded_file
 
@@ -403,6 +424,64 @@ class FamiliarForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+class SetorJuridicoForm(forms.ModelForm):
+    """Form for creating setor juridico records."""
+
+    situacao_juridica_atual = forms.MultipleChoiceField(
+        required=False,
+        choices=SetorJuridico.SITUACAO_JURIDICA_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+    )
+    encaminhamentos_setor = forms.MultipleChoiceField(
+        required=False,
+        choices=SetorJuridico.ENCAMINHAMENTO_SETOR_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    class Meta:
+        model = SetorJuridico
+        fields = [
+            "numero_processo",
+            "vara_comarca",
+            "tipo_processo",
+            "situacao_juridica_atual",
+            "situacao_juridica_outro",
+            "encaminhamentos_setor",
+            "encaminhamentos_setor_outro",
+            "documento_pdf",
+            "observacoes",
+        ]
+        widgets = {
+            "observacoes": forms.Textarea(attrs={"rows": 4}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.situacao_juridica_atual:
+            self.fields["situacao_juridica_atual"].initial = [
+                item.strip()
+                for item in self.instance.situacao_juridica_atual.split(",")
+                if item.strip()
+            ]
+        if self.instance and self.instance.encaminhamentos_setor:
+            self.fields["encaminhamentos_setor"].initial = [
+                item.strip()
+                for item in self.instance.encaminhamentos_setor.split(",")
+                if item.strip()
+            ]
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.situacao_juridica_atual = ", ".join(self.cleaned_data.get("situacao_juridica_atual", []))
+        instance.encaminhamentos_setor = ", ".join(self.cleaned_data.get("encaminhamentos_setor", []))
+        if commit:
+            instance.save()
+        return instance
+
+    def clean_documento_pdf(self):
+        return _validate_pdf_upload(self.cleaned_data.get("documento_pdf"))
 
 
 class AdminUserCreateForm(forms.Form):

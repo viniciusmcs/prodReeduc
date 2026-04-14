@@ -1,0 +1,309 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Setor Juridico - {{ familiar.nome }}{% endblock %}
+{% block nav_familiares %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    .setor-juridico-modal .modal-dialog {
+        max-width: 980px;
+    }
+
+    .setor-juridico-modal .modal-content {
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .setor-juridico-modal .modal-header {
+        background: linear-gradient(135deg, #eef4ff 0%, #f8fbff 100%);
+        border-bottom: 1px solid var(--border);
+        padding: 16px 18px;
+    }
+
+    .setor-juridico-modal .modal-header h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .setor-juridico-modal .modal-body {
+        max-height: 75vh;
+        overflow: auto;
+        padding: 16px 18px;
+        background: #f8fafc;
+    }
+
+    .setor-juridico-modal form {
+        display: grid;
+        gap: 14px;
+    }
+
+    .juridico-section {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    }
+
+    .juridico-section h4 {
+        margin: 0 0 10px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .juridico-label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #334155;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+    .setor-juridico-modal input[type="text"],
+    .setor-juridico-modal textarea {
+        width: 100%;
+        border: 1px solid #d8e0eb;
+        background: #fff;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 14px;
+        color: #0f172a;
+    }
+
+    .setor-juridico-modal input[type="text"]:focus,
+    .setor-juridico-modal textarea:focus {
+        outline: none;
+        border-color: #6ea8ff;
+        box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.13);
+    }
+
+    #id_situacao_juridica_atual,
+    #id_encaminhamentos_setor {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 8px;
+    }
+
+    #id_situacao_juridica_atual li,
+    #id_encaminhamentos_setor li {
+        border: 1px solid #dbe4f0;
+        background: #f8fbff;
+        border-radius: 10px;
+        padding: 8px 10px;
+    }
+
+    #id_situacao_juridica_atual li label,
+    #id_encaminhamentos_setor li label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #334155;
+        font-weight: 500;
+    }
+
+    .setor-juridico-modal .modal-footer {
+        margin-top: 0;
+        padding-top: 4px;
+    }
+
+    @media (max-width: 768px) {
+        .setor-juridico-modal .modal-dialog {
+            max-width: calc(100vw - 20px);
+            margin: 10px auto;
+        }
+        .setor-juridico-modal .modal-body {
+            padding: 12px;
+            max-height: 82vh;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="perfil-header">
+    <div>
+        <h1>{{ familiar.nome }}</h1>
+        <p>Familiar sem vinculo com cadastro de egresso no sistema</p>
+    </div>
+</div>
+
+<div class="perfil-tabs">
+    <a class="tab nav-link" href="/familiares/{{ familiar.id }}/ver">Perfil</a>
+    <a class="tab nav-link active" href="/familiares/{{ familiar.id }}/setor-juridico">Setor Juridico</a>
+</div>
+
+<section class="data-card" style="margin-bottom:16px;">
+    <div class="data-card__header">
+        <h2>Setor Juridico</h2>
+        <button type="button" id="openSetorJuridicoModal" class="btn btn--primary btn--sm">
+            <span class="material-icons-outlined" style="font-size:16px">add</span> Cadastrar
+        </button>
+    </div>
+    <div class="data-card__body">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Numero do Processo</th>
+                    <th>Vara/Comarca</th>
+                    <th>Tipo de Processo</th>
+                    <th>Situacao Juridica</th>
+                    <th>Encaminhamentos</th>
+                    <th>Documento</th>
+                    <th>Data</th>
+                    <th>Acoes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for registro in registros %}
+                <tr>
+                    <td>{{ registro.numero_processo|default:"-" }}</td>
+                    <td>{{ registro.vara_comarca|default:"-" }}</td>
+                    <td>{{ registro.tipo_processo|default:"-" }}</td>
+                    <td>{{ registro.situacao_display|join:", "|default:"-" }}</td>
+                    <td>{{ registro.encaminhamentos_display|join:", "|default:"-" }}</td>
+                    <td>
+                        {% if registro.documento_pdf %}
+                            <a class="btn-icon" href="{{ registro.documento_pdf.url }}" target="_blank" rel="noopener noreferrer" title="Abrir documento">
+                                <span class="material-icons-outlined">description</span>
+                            </a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ registro.data_criacao|date:"d/m/Y H:i" }}</td>
+                    <td class="actions-cell">
+                        <a class="btn-icon" href="/familiares/{{ familiar.id }}/setor-juridico/{{ registro.id }}/ver" title="Ver"><span class="material-icons-outlined">visibility</span></a>
+                        <a class="btn-icon" href="/familiares/{{ familiar.id }}/setor-juridico/{{ registro.id }}/editar" title="Editar"><span class="material-icons-outlined">edit</span></a>
+                        <a class="btn-icon btn-icon--danger" href="/familiares/{{ familiar.id }}/setor-juridico/{{ registro.id }}/excluir" title="Excluir"><span class="material-icons-outlined">delete</span></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">Nenhum registro cadastrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<div class="modal fade setor-juridico-modal" id="setorJuridicoModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Cadastro - Setor Juridico</h3>
+                <button type="button" class="modal-close" id="closeSetorJuridicoModal">×</button>
+            </div>
+            <div class="modal-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="setor_juridico_form" value="1">
+
+                    <div class="juridico-section">
+                        <h4>1. Situacao Processual</h4>
+                        <div class="row g-2">
+                            <div class="col-md">
+                                <label class="juridico-label" for="id_numero_processo">Numero do Processo</label>
+                                {{ form.numero_processo }}
+                            </div>
+                            <div class="col-md">
+                                <label class="juridico-label" for="id_vara_comarca">Vara / Comarca</label>
+                                {{ form.vara_comarca }}
+                            </div>
+                            <div class="col-md">
+                                <label class="juridico-label" for="id_tipo_processo">Tipo de Processo</label>
+                                {{ form.tipo_processo }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="juridico-section">
+                        <h4>2. Situacao Juridica Atual</h4>
+                        {{ form.situacao_juridica_atual }}
+                        <div class="row g-2" style="margin-top: 8px;" id="situacaoOutroWrapper">
+                            <div class="col-md">
+                                <label class="juridico-label" for="id_situacao_juridica_outro">Outro</label>
+                                {{ form.situacao_juridica_outro }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="juridico-section">
+                        <h4>3. Encaminhamentos do Setor Juridico</h4>
+                        {{ form.encaminhamentos_setor }}
+                        <div class="row g-2" style="margin-top: 8px;" id="encaminhamentoOutroWrapper">
+                            <div class="col-md">
+                                <label class="juridico-label" for="id_encaminhamentos_setor_outro">Outro</label>
+                                {{ form.encaminhamentos_setor_outro }}
+                            </div>
+                        </div>
+                        <div class="row g-2" style="margin-top: 8px;">
+                            <div class="col-md">
+                                <label class="juridico-label" for="id_documento_pdf">Documento PDF (opcional, ate 10MB)</label>
+                                {{ form.documento_pdf }}
+                                {{ form.documento_pdf.errors }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="juridico-section">
+                        <h4>4. Observacoes</h4>
+                        <label class="juridico-label" for="id_observacoes">Espaco livre para registro de informacoes relevantes</label>
+                        {{ form.observacoes }}
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn--ghost" id="cancelSetorJuridicoModal">Cancelar</button>
+                        <button type="submit" class="btn btn--primary">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const setorJuridicoModal = document.getElementById('setorJuridicoModal');
+    const openSetorJuridicoModal = document.getElementById('openSetorJuridicoModal');
+    const closeSetorJuridicoModal = document.getElementById('closeSetorJuridicoModal');
+    const cancelSetorJuridicoModal = document.getElementById('cancelSetorJuridicoModal');
+
+    const closeModal = () => {
+        if (setorJuridicoModal) setorJuridicoModal.classList.remove('show');
+    };
+
+    if (openSetorJuridicoModal) {
+        openSetorJuridicoModal.addEventListener('click', () => {
+            setorJuridicoModal.classList.add('show');
+        });
+    }
+    if (closeSetorJuridicoModal) closeSetorJuridicoModal.addEventListener('click', closeModal);
+    if (cancelSetorJuridicoModal) cancelSetorJuridicoModal.addEventListener('click', closeModal);
+
+    const toggleOutro = (groupName, value, wrapperId) => {
+        const checkboxes = Array.from(document.querySelectorAll(`input[name="${groupName}"]`));
+        const wrapper = document.getElementById(wrapperId);
+        if (!wrapper || !checkboxes.length) return;
+        const evaluate = () => {
+            const selected = checkboxes.some((checkbox) => checkbox.checked && checkbox.value === value);
+            wrapper.style.display = selected ? '' : 'none';
+        };
+        checkboxes.forEach((checkbox) => checkbox.addEventListener('change', evaluate));
+        evaluate();
+    };
+
+    toggleOutro('situacao_juridica_atual', 'outro', 'situacaoOutroWrapper');
+    toggleOutro('encaminhamentos_setor', 'outro', 'encaminhamentoOutroWrapper');
+</script>
+{% endblock %}

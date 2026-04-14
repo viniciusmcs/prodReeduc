@@ -250,6 +250,60 @@ class Familiar(models.Model):
         return f"Familiar - {self.nome}"
 
 
+class SetorJuridico(models.Model):
+    """Registros do setor juridico para cadastro e familiar avulso."""
+
+    SITUACAO_JURIDICA_CHOICES = [
+        ("aguardando_audiencia", "Aguardando audiencia"),
+        ("processo_andamento", "Processo em andamento"),
+        ("sentenca_proferida", "Sentenca proferida"),
+        ("recurso_andamento", "Recurso em andamento"),
+        ("processo_arquivado", "Processo arquivado"),
+        ("cumprimento_pena_medida", "Cumprimento de pena / medida"),
+        ("aguardando_documentacao", "Aguardando documentacao"),
+        ("outro", "Outro"),
+    ]
+
+    ENCAMINHAMENTO_SETOR_CHOICES = [
+        ("orientacao_juridica", "Orientacao juridica realizada"),
+        ("defensoria_publica", "Encaminhamento para Defensoria Publica"),
+        ("advogado", "Encaminhamento para advogado"),
+        ("solicitacao_documentos", "Solicitacao de documentos"),
+        ("acompanhamento_processual", "Acompanhamento processual"),
+        ("agendamento_juridico", "Agendamento de atendimento juridico"),
+        ("outro", "Outro"),
+    ]
+
+    cadastro = models.ForeignKey(
+        Cadastro,
+        on_delete=models.CASCADE,
+        related_name="setor_juridico_registros",
+        null=True,
+        blank=True,
+    )
+    familiar = models.ForeignKey(
+        Familiar,
+        on_delete=models.CASCADE,
+        related_name="setor_juridico_registros",
+        null=True,
+        blank=True,
+    )
+    numero_processo = models.CharField(max_length=120, blank=True)
+    vara_comarca = models.CharField(max_length=255, blank=True)
+    tipo_processo = models.CharField(max_length=255, blank=True)
+    situacao_juridica_atual = models.TextField(blank=True)
+    situacao_juridica_outro = models.CharField(max_length=255, blank=True)
+    encaminhamentos_setor = models.TextField(blank=True)
+    encaminhamentos_setor_outro = models.CharField(max_length=255, blank=True)
+    documento_pdf = models.FileField(upload_to="setor_juridico_docs/", null=True, blank=True)
+    observacoes = models.TextField(blank=True)
+    data_criacao = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        alvo = self.cadastro.nome if self.cadastro_id else (self.familiar.nome if self.familiar_id else "Sem vinculo")
+        return f"Setor Juridico - {alvo}"
+
+
 class Lembrete(models.Model):
     """Lembrete/anotação vinculada ao cadastro."""
 

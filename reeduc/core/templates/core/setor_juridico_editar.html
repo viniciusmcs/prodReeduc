@@ -1,0 +1,113 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Editar Registro Juridico{% endblock %}
+{% if is_familiar_avulso %}
+{% block nav_familiares %}active{% endblock %}
+{% else %}
+{% block nav_cadastros %}active{% endblock %}
+{% endif %}
+
+{% block extra_css %}
+<style>
+    #id_situacao_juridica_atual,
+    #id_encaminhamentos_setor {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 6px 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Editar Registro do Setor Juridico</h1>
+
+<form method="post" class="form" enctype="multipart/form-data">
+    {% csrf_token %}
+    <section class="form-section">
+        <h2>1. Situacao Processual</h2>
+        <div class="grid">
+            <div class="field">
+                <label for="id_numero_processo">Numero do Processo</label>
+                {{ form.numero_processo }}
+            </div>
+            <div class="field">
+                <label for="id_vara_comarca">Vara / Comarca</label>
+                {{ form.vara_comarca }}
+            </div>
+            <div class="field">
+                <label for="id_tipo_processo">Tipo de Processo</label>
+                {{ form.tipo_processo }}
+            </div>
+        </div>
+    </section>
+
+    <section class="form-section">
+        <h2>2. Situacao Juridica Atual</h2>
+        <div class="field">
+            {{ form.situacao_juridica_atual }}
+        </div>
+        <div class="grid" id="situacaoOutroWrapper">
+            <div class="field">
+                <label for="id_situacao_juridica_outro">Outro</label>
+                {{ form.situacao_juridica_outro }}
+            </div>
+        </div>
+    </section>
+
+    <section class="form-section">
+        <h2>3. Encaminhamentos do Setor Juridico</h2>
+        <div class="field">
+            {{ form.encaminhamentos_setor }}
+        </div>
+        <div class="grid" id="encaminhamentoOutroWrapper">
+            <div class="field">
+                <label for="id_encaminhamentos_setor_outro">Outro</label>
+                {{ form.encaminhamentos_setor_outro }}
+            </div>
+        </div>
+        <div class="grid">
+            <div class="field">
+                <label for="id_documento_pdf">Documento PDF (opcional, ate 10MB)</label>
+                {{ form.documento_pdf }}
+                {{ form.documento_pdf.errors }}
+            </div>
+        </div>
+    </section>
+
+    <section class="form-section">
+        <h2>4. Observacoes</h2>
+        <div class="field">
+            <label for="id_observacoes">Espaço para as Observações</label>
+            {{ form.observacoes }}
+        </div>
+    </section>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn--primary">Salvar</button>
+        <a class="btn btn--ghost" href="{{ voltar_url }}">Cancelar</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const toggleOutro = (groupName, value, wrapperId) => {
+        const checkboxes = Array.from(document.querySelectorAll(`input[name="${groupName}"]`));
+        const wrapper = document.getElementById(wrapperId);
+        if (!wrapper || !checkboxes.length) return;
+        const evaluate = () => {
+            const selected = checkboxes.some((checkbox) => checkbox.checked && checkbox.value === value);
+            wrapper.style.display = selected ? '' : 'none';
+        };
+        checkboxes.forEach((checkbox) => checkbox.addEventListener('change', evaluate));
+        evaluate();
+    };
+
+    toggleOutro('situacao_juridica_atual', 'outro', 'situacaoOutroWrapper');
+    toggleOutro('encaminhamentos_setor', 'outro', 'encaminhamentoOutroWrapper');
+</script>
+{% endblock %}

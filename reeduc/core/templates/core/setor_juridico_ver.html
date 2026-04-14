@@ -1,0 +1,47 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Ver Registro Juridico{% endblock %}
+{% if is_familiar_avulso %}
+{% block nav_familiares %}active{% endblock %}
+{% else %}
+{% block nav_cadastros %}active{% endblock %}
+{% endif %}
+
+{% block content %}
+<h1>Registro do Setor Juridico</h1>
+
+<section class="data-card">
+    <div class="data-card__body">
+        <table class="data-table">
+            <tbody>
+                <tr><th>Numero do Processo</th><td>{{ registro.numero_processo|default:"-" }}</td></tr>
+                <tr><th>Vara / Comarca</th><td>{{ registro.vara_comarca|default:"-" }}</td></tr>
+                <tr><th>Tipo de Processo</th><td>{{ registro.tipo_processo|default:"-" }}</td></tr>
+                <tr><th>Situacao Juridica Atual</th><td>{{ registro.situacao_display|join:", "|default:"-" }}</td></tr>
+                <tr><th>Encaminhamentos do Setor</th><td>{{ registro.encaminhamentos_display|join:", "|default:"-" }}</td></tr>
+                <tr>
+                    <th>Documento</th>
+                    <td>
+                        {% if registro.documento_pdf %}
+                            <a class="btn-icon" href="{{ registro.documento_pdf.url }}" target="_blank" rel="noopener noreferrer" title="Abrir documento">
+                                <span class="material-icons-outlined">description</span>
+                            </a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr><th>Observacoes</th><td>{{ registro.observacoes|default:"-" }}</td></tr>
+                <tr><th>Data</th><td>{{ registro.data_criacao|date:"d/m/Y H:i" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<div class="perfil-actions-row">
+    <a class="btn btn--primary" href="{{ editar_url }}">Editar</a>
+    <a class="btn btn--outline" href="{{ excluir_url }}">Excluir</a>
+    <a class="btn btn--ghost" href="{{ voltar_url }}">Voltar</a>
+</div>
+{% endblock %}

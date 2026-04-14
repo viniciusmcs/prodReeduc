@@ -1,0 +1,33 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Excluir Registro Juridico{% endblock %}
+{% if is_familiar_avulso %}
+{% block nav_familiares %}active{% endblock %}
+{% else %}
+{% block nav_cadastros %}active{% endblock %}
+{% endif %}
+
+{% block content %}
+<h1>Excluir Registro do Setor Juridico</h1>
+<p>Tem certeza que deseja excluir este registro?</p>
+
+<section class="data-card">
+    <div class="data-card__body">
+        <table class="data-table">
+            <tbody>
+                <tr><th>Numero do Processo</th><td>{{ registro.numero_processo|default:"-" }}</td></tr>
+                <tr><th>Vara / Comarca</th><td>{{ registro.vara_comarca|default:"-" }}</td></tr>
+                <tr><th>Tipo de Processo</th><td>{{ registro.tipo_processo|default:"-" }}</td></tr>
+                <tr><th>Data</th><td>{{ registro.data_criacao|date:"d/m/Y H:i" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<form method="post" style="margin-top: 12px;">
+    {% csrf_token %}
+    <button class="btn btn--danger" type="submit">Confirmar exclusao</button>
+    <a class="btn btn--ghost" href="{{ voltar_url }}">Cancelar</a>
+</form>
+{% endblock %}
