@@ -1078,12 +1078,6 @@ def _apply_cadastro_filters(qs, params):
     return qs
 
 
-CADASTRO_REPORT_FILTERS = (
-    "status_cadastro", "data_inicio", "data_fim", "sexo_biologico", "etnia",
-    "grau_instrucao", "status_ocupacional", "zona_cidade", "nome",
-)
-
-
 def _report_querysets(params):
     """Return consistently filtered querysets used by every report section."""
     cadastros = _apply_cadastro_filters(
@@ -1093,10 +1087,31 @@ def _report_querysets(params):
     atendimentos = Atendimento.objects.all().order_by("-data_atendimento")
     agendamentos = Agendamento.objects.all().order_by("-data_agendamento")
 
-    # The form filters identify egressos. Once any such filter is selected,
-    # only relatives of matching egressos belong in the filtered result.
-    # Avulsos have no egresso against which these criteria could be evaluated.
-    if any(params.get(key) for key in CADASTRO_REPORT_FILTERS):
+    # Each report section uses its own registration date. A Familiar may be
+    # avulso (without Cadastro FK), so filtering it through Cadastro would
+    # incorrectly remove most of the records shown on the Familiares page.
+    if params.get("data_inicio"):
+        familiares = familiares.filter(data_criacao__date__gte=params["data_inicio"])
+    if params.get("data_fim"):
+        familiares = familiares.filter(data_criacao__date__lte=params["data_fim"])
+    if params.get("sexo_biologico"):
+        familiares = familiares.filter(sexo_biologico=params["sexo_biologico"])
+    if params.get("etnia"):
+        familiares = familiares.filter(identidade_etnico_racial=params["etnia"])
+    if params.get("nome"):
+        nome = params["nome"]
+        familiares = familiares.filter(
+            db_models.Q(nome__icontains=nome)
+            | db_models.Q(nome_interno_referencia__icontains=nome)
+            | db_models.Q(cadastro__nome__icontains=nome)
+        )
+
+    # These attributes only exist on a linked egresso. When selected, avulsos
+    # cannot be evaluated and only relatives of matching cadastros are valid.
+    linked_filter_keys = (
+        "status_cadastro", "grau_instrucao", "status_ocupacional", "zona_cidade",
+    )
+    if any(params.get(key) for key in linked_filter_keys):
         familiares = familiares.filter(cadastro__in=cadastros)
 
     # Activities do not have a foreign key to Cadastro, but their own date and
