@@ -1078,6 +1078,42 @@ def _apply_cadastro_filters(qs, params):
     return qs
 
 
+CADASTRO_REPORT_FILTERS = (
+    "status_cadastro", "data_inicio", "data_fim", "sexo_biologico", "etnia",
+    "grau_instrucao", "status_ocupacional", "zona_cidade", "nome",
+)
+
+
+def _report_querysets(params):
+    """Return consistently filtered querysets used by every report section."""
+    cadastros = _apply_cadastro_filters(
+        Cadastro.objects.all().order_by("nome"), params
+    )
+    familiares = Familiar.objects.all().order_by("nome")
+    atendimentos = Atendimento.objects.all().order_by("-data_atendimento")
+    agendamentos = Agendamento.objects.all().order_by("-data_agendamento")
+
+    # The form filters identify egressos. Once any such filter is selected,
+    # only relatives of matching egressos belong in the filtered result.
+    # Avulsos have no egresso against which these criteria could be evaluated.
+    if any(params.get(key) for key in CADASTRO_REPORT_FILTERS):
+        familiares = familiares.filter(cadastro__in=cadastros)
+
+    # Activities do not have a foreign key to Cadastro, but their own date and
+    # attended-person name can still honor the equivalent report filters.
+    if params.get("data_inicio"):
+        atendimentos = atendimentos.filter(data_atendimento__gte=params["data_inicio"])
+        agendamentos = agendamentos.filter(data_agendamento__gte=params["data_inicio"])
+    if params.get("data_fim"):
+        atendimentos = atendimentos.filter(data_atendimento__lte=params["data_fim"])
+        agendamentos = agendamentos.filter(data_agendamento__lte=params["data_fim"])
+    if params.get("nome"):
+        atendimentos = atendimentos.filter(nome_pessoa_atendida__icontains=params["nome"])
+        agendamentos = agendamentos.filter(nome_atendido__icontains=params["nome"])
+
+    return cadastros, familiares, atendimentos, agendamentos
+
+
 @login_required
 def relatorios_pdf_view(request):
     """Generate a PDF report based on selected sections and filters."""
@@ -1096,22 +1132,7 @@ def relatorios_pdf_view(request):
     if not secoes:
         secoes = ["cadastros", "familiares", "atendimentos", "agendamentos", "quantitativos"]
 
-    # Filtered queryset
-    cadastros = _apply_cadastro_filters(
-        Cadastro.objects.all().order_by("nome"), params
-    )
-    familiares_qs = Familiar.objects.all().order_by("nome")
-    atendimentos_qs = Atendimento.objects.all().order_by("-data_atendimento")
-    agendamentos_qs = Agendamento.objects.all().order_by("-data_agendamento")
-
-    # If filtering cadastros, also filter related familiares
-    if any(params.get(k) for k in ("status_cadastro", "data_inicio", "data_fim",
-                                     "sexo_biologico", "etnia", "grau_instrucao",
-                                     "status_ocupacional", "zona_cidade", "nome")):
-        cadastro_ids = list(cadastros.values_list("id", flat=True))
-        familiares_qs = familiares_qs.filter(
-            db_models.Q(cadastro_id__in=cadastro_ids) | db_models.Q(cadastro__isnull=True)
-        )
+    cadastros, familiares_qs, atendimentos_qs, agendamentos_qs = _report_querysets(params)
 
     # ── Build PDF ──
     buf = io.BytesIO()
