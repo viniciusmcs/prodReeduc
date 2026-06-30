@@ -1,9 +1,10 @@
 """Tests for the core app."""
 
-from datetime import date
+from datetime import date, datetime
 
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from .models import Agendamento, Atendimento, Cadastro, Familiar
 from .views import _report_querysets
@@ -29,15 +30,35 @@ class ReportFilterTests(TestCase):
         self.matching_relative = Familiar.objects.create(
             nome="Familiar Maria", cadastro=self.matching
         )
-        Familiar.objects.create(nome="Familiar Outra", cadastro=self.other)
-        Familiar.objects.create(nome="Familiar Avulso")
+        self.other_relative = Familiar.objects.create(
+            nome="Familiar Outra", cadastro=self.other
+        )
+        self.unlinked_relative = Familiar.objects.create(
+            nome="Familiar Avulso", nome_interno_referencia="Egresso Referenciado"
+        )
 
-    def test_filtered_relatives_exclude_nonmatching_and_unlinked_records(self):
+        january = timezone.make_aware(datetime(2026, 1, 15, 12))
+        may = timezone.make_aware(datetime(2026, 5, 15, 12))
+        Familiar.objects.filter(
+            pk__in=[self.matching_relative.pk, self.unlinked_relative.pk]
+        ).update(data_criacao=january)
+        Familiar.objects.filter(pk=self.other_relative.pk).update(data_criacao=may)
+
+    def test_family_period_uses_its_own_creation_date_and_keeps_unlinked(self):
         _, familiares, _, _ = _report_querysets({
-            "data_inicio": "2026-06-01", "data_fim": "2026-06-30"
+            "data_inicio": "2026-01-01", "data_fim": "2026-01-31"
         })
 
-        self.assertQuerySetEqual(familiares, [self.matching_relative])
+        self.assertQuerySetEqual(
+            familiares,
+            [self.unlinked_relative, self.matching_relative],
+            ordered=False,
+        )
+
+    def test_family_name_searches_familiar_and_referenced_egresso(self):
+        _, familiares, _, _ = _report_querysets({"nome": "Referenciado"})
+
+        self.assertQuerySetEqual(familiares, [self.unlinked_relative])
 
     def test_unfiltered_report_keeps_all_relatives(self):
         _, familiares, _, _ = _report_querysets({})
