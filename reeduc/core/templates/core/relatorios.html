@@ -8,7 +8,7 @@
 {% block content %}
 <div class="page-header">
     <h1>Relatórios</h1>
-    <p>Gere relatórios completos do sistema em PDF. Escolha os filtros e seções desejadas.</p>
+    <p>Gere relatórios completos do sistema em PDF ou Excel. Escolha os filtros e seções desejadas.</p>
 </div>
 
 <!-- Resumo rápido -->
@@ -58,7 +58,7 @@
         <!-- Seções a incluir -->
         <div class="form-section">
             <h2><span class="material-icons-outlined" style="vertical-align: middle; margin-right: 6px; font-size: 20px;">checklist</span> Seções do Relatório</h2>
-            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">Selecione quais informações deseja incluir no PDF.</p>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">Selecione quais informações deseja incluir no arquivo.</p>
             <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
                 <label class="form-check" style="padding: 12px 16px; background: var(--bg); border-radius: var(--radius-sm); cursor: pointer;">
                     <input type="checkbox" name="secao" value="cadastros" checked>
@@ -119,6 +119,20 @@
                 </div>
 
                 <div class="form-field">
+                    <label>Identidade de Gênero</label>
+                    <select name="identidade_genero">
+                        <option value="">Todos</option>
+                        <option value="homem_cis">Homem cisgênero</option>
+                        <option value="mulher_cis">Mulher cisgênero</option>
+                        <option value="homem_trans">Homem transgênero</option>
+                        <option value="mulher_trans">Mulher transgênero</option>
+                        <option value="travesti">Travesti</option>
+                        <option value="nao_binario">Não binário</option>
+                        <option value="outro">Outro</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
                     <label>Etnia</label>
                     <select name="etnia">
                         <option value="">Todas</option>
@@ -135,12 +149,71 @@
                     <select name="grau_instrucao">
                         <option value="">Todos</option>
                         <option value="nao_informado">Não informado</option>
+                        <option value="nao_alfabetizado">Não alfabetizado</option>
                         <option value="fundamental_incompleto">Fund. Incompleto</option>
                         <option value="fundamental_completo">Fund. Completo</option>
                         <option value="medio_incompleto">Médio Incompleto</option>
                         <option value="medio_completo">Médio Completo</option>
                         <option value="superior_incompleto">Superior Incompleto</option>
                         <option value="superior_completo">Superior Completo</option>
+                        <option value="pos_graduacao_incompleta">Pós-Graduação Incompleta</option>
+                        <option value="pos_graduacao_completa">Pós-Graduação Completa</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Experiência de Trabalho</label>
+                    <select name="experiencia_trabalho">
+                        <option value="">Todas</option>
+                        <option value="formal">Formal</option>
+                        <option value="informal">Informal</option>
+                        <option value="formal_informal">Formal e informal</option>
+                        <option value="sem_experiencia">Sem experiência</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Tipo de Ocupação</label>
+                    <select name="tipo_ocupacao">
+                        <option value="">Todos</option>
+                        <option value="estudante">Estudante</option>
+                        <option value="formal">Ocupação formal</option>
+                        <option value="informal">Ocupação informal</option>
+                        <option value="pensionista_aposentado">Pensionista/Aposentado</option>
+                        <option value="sem_ocupacao">Sem ocupação</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Tipo de Deficiência</label>
+                    <select name="deficiencia">
+                        <option value="">Todas</option>
+                        <option value="motora">Motora/Física</option>
+                        <option value="visual">Visual</option>
+                        <option value="mental_intelectual">Mental/Intelectual</option>
+                        <option value="auditiva">Auditiva</option>
+                        <option value="multipla">Múltiplas deficiências</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Comorbidade/Problema de Saúde</label>
+                    <select name="possui_comorbidade">
+                        <option value="">Todos</option>
+                        <option value="sim">Sim</option>
+                        <option value="nao">Não</option>
+                        <option value="nao_informado">Não informado</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Uso de Substâncias Psicoativas</label>
+                    <select name="uso_substancias_psicoativas">
+                        <option value="">Todos</option>
+                        <option value="nunca">Nunca fez uso</option>
+                        <option value="uso_anterior">Fez uso anteriormente</option>
+                        <option value="uso_atual">Faz uso atualmente</option>
+                        <option value="uso_anterior_atual">Uso anterior e atual</option>
                     </select>
                 </div>
 
@@ -179,8 +252,12 @@
             <button type="button" class="btn btn--outline" onclick="resetFilters()">
                 <span class="material-icons-outlined">restart_alt</span> Limpar Filtros
             </button>
-            <button type="submit" class="btn btn--primary">
+            <button type="submit" class="btn btn--primary" formaction="/relatorios/pdf">
                 <span class="material-icons-outlined">picture_as_pdf</span> Gerar PDF
+            </button>
+            <button type="submit" class="btn btn--primary" formaction="/relatorios/excel"
+                    style="background: #16834a; border-color: #16834a;">
+                <span class="material-icons-outlined">table_view</span> Baixar Excel
             </button>
         </div>
     </form>

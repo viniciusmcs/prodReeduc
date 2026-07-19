@@ -19,13 +19,13 @@
                     <a class="tab nav-link" href="/cadastro/agendamentos/{{ cadastro.id }}">Agendamentos</a>
                 </div>
 
-                <section class="table-card">
+                <section class="table-card operation-table">
                     <div class="table-card__header">
                         <h2>Atendimentos</h2>
                         <span class="badge">{{ atendimentos|length }}</span>
                     </div>
                     <div class="table-card__body">
-                        <table>
+                        <table class="data-table">
                             <thead>
                                 <tr>
                                     <th>Data</th>
@@ -39,14 +39,17 @@
                                 <tr>
                                     <td>{{ atendimento.data_atendimento|date:"d/m/Y" }}</td>
                                     <td>{{ atendimento.get_tipo_atendimento_display|default:"-" }}</td>
-                                    <td>{{ atendimento.get_status_display }}</td>
+                                    <td><span class="status-pill {% if atendimento.status == 'realizado' %}status-pill--success{% endif %}">{{ atendimento.get_status_display }}</span></td>
                                     <td>
-                                        <a href="/atendimentos/{{ atendimento.id }}/ver" title="Ver">👁️</a>
+                                        <div class="operation-row-actions">
+                                            <a class="operation-icon-button" href="/atendimentos/{{ atendimento.id }}/ver" title="Visualizar"><span class="material-icons-outlined">visibility</span></a>
+                                            <a class="operation-icon-button" href="/atendimentos/{{ atendimento.id }}/editar" title="Editar"><span class="material-icons-outlined">edit</span></a>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="4">Nenhum atendimento registrado.</td>
+                                    <td colspan="4" class="empty-operation">Nenhum atendimento registrado.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

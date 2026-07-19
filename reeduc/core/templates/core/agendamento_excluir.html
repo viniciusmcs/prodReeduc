@@ -5,31 +5,38 @@
 {% block nav_agendamentos %}active{% endblock %}
 
 {% block content %}
-                <h1>Confirmar Exclusão</h1>
-
-                <div class="alert alert--warning" style="padding: 16px; background: #fef3c7; border: 1px solid #fbbf24; border-radius: 6px; margin-bottom: 24px;">
-                    <strong>Atenção!</strong> Você está prestes a excluir o agendamento abaixo. Esta ação não pode ser desfeita.
+                <div class="operation-page confirm-card">
+                <div class="operation-header">
+                    <div>
+                        <span class="operation-header__eyebrow">Ação permanente</span>
+                        <h1>Excluir agendamento</h1>
+                        <p>Revise as informações antes de confirmar.</p>
+                    </div>
                 </div>
 
-                <section class="table-card">
-                    <div class="table-card__body">
-                        <table>
-                            <tbody>
-                                <tr><th>Nome do Atendido</th><td>{{ agendamento.nome_atendido }}</td></tr>
-                                <tr><th>Data do Agendamento</th><td>{{ agendamento.data_agendamento|date:"d/m/Y" }}</td></tr>
-                                <tr><th>Horário</th><td>{{ agendamento.horario_atendimento|default:"-" }}</td></tr>
-                                <tr><th>Tipo de Agendamento</th><td>{{ agendamento.get_tipo_agendamento_display|default:"-" }}</td></tr>
-                                <tr><th>Observações</th><td>{{ agendamento.observacoes|default:"-" }}</td></tr>
-                            </tbody>
-                        </table>
+                <div class="confirm-alert">
+                    <span class="material-icons-outlined">warning_amber</span>
+                    <div><strong>Atenção:</strong> esta ação não pode ser desfeita.</div>
+                </div>
+
+                <section class="detail-card">
+                    <div class="detail-card__body">
+                        <div class="detail-list">
+                            <div class="detail-item"><strong>Nome do atendido</strong><span>{{ agendamento.nome_atendido }}</span></div>
+                            <div class="detail-item"><strong>Data</strong><span>{{ agendamento.data_agendamento|date:"d/m/Y" }}</span></div>
+                            <div class="detail-item"><strong>Horário</strong><span>{{ agendamento.horario_atendimento|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Tipo</strong><span>{{ agendamento.get_tipo_agendamento_display|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Observações</strong><span>{{ agendamento.observacoes|default:"-" }}</span></div>
+                        </div>
                     </div>
                 </section>
 
-                <form method="post" style="margin-top: 24px;">
+                <form method="post">
                     {% csrf_token %}
-                    <div style="display: flex; gap: 10px;">
-                        <button type="submit" class="primary-button">Confirmar Exclusão</button>
-                        <a href="/agendamentos" class="ghost-button">Cancelar</a>
+                    <div class="operation-actions">
+                        <button type="submit" class="operation-button operation-button--danger"><span class="material-icons-outlined">delete</span>Confirmar exclusão</button>
+                        <a href="/agendamentos/{{ agendamento.id }}/ver" class="operation-button">Cancelar</a>
                     </div>
                 </form>
+                </div>
 {% endblock %}

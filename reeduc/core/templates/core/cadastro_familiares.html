@@ -19,10 +19,16 @@
                     <a class="tab nav-link" href="/cadastro/agendamentos/{{ cadastro.id }}">Agendamentos</a>
                 </div>
 
-                <div id="familiares" class="tab-content bg-white rounded p-2 py-1" style="margin-bottom: 16px;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                        <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Familiares</h3>
-                        <button type="button" id="openFamiliarModal" class="primary-button" style="padding: 6px 12px;">+ Cadastrar Familiar</button>
+                <div id="familiares" class="tab-content familiares-panel">
+                    <div class="familiares-toolbar">
+                        <div>
+                            <h2>Familiares vinculados</h2>
+                            <p>Consulte e mantenha os dados da rede familiar deste cadastro.</p>
+                        </div>
+                        <button type="button" id="openFamiliarModal" class="primary-button">
+                            <span class="material-icons-outlined">person_add</span>
+                            Cadastrar familiar
+                        </button>
                     </div>
                     <div class="table-card__body">
                         <table>
@@ -60,16 +66,25 @@
 
     <div class="modal fade" id="familiarModal" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content">
+            <div class="modal-content familiar-modal-content">
                 <div class="modal-header">
-                    <h3>Cadastrar Familiar</h3>
-                    <button type="button" class="modal-close" id="closeFamiliarModal">×</button>
+                    <div>
+                        <span class="modal-eyebrow">Novo vínculo</span>
+                        <h3>Cadastrar familiar</h3>
+                        <p>Preencha os dados pessoais, sociais e de contato.</p>
+                    </div>
+                    <button type="button" class="modal-close" id="closeFamiliarModal" aria-label="Fechar">
+                        <span class="material-icons-outlined">close</span>
+                    </button>
                 </div>
                 <div class="modal-body">
-                    <form class="needs-validation" id="formularioFamiliar" method="post">
+                    <form class="form needs-validation" id="formularioFamiliar" method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         <input type="hidden" name="familiar_form" value="1" />
+                        {% include "core/_form_errors.html" with form=familiar_form %}
 
+                        <section class="form-section">
+                            <h2>Dados do familiar</h2>
                         <div class="row g-2">
                             <div class="col-md-9">
                                 <div class="form-floating">
@@ -82,6 +97,13 @@
                                     <input type="text" class="form-control" id="nome_social" name="nome_social" placeholder="Nome Social">
                                     <label for="nome_social">Nome Social</label>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label for="{{ familiar_form.identidade_genero.id_for_label }}">Identidade de gênero</label>
+                                {{ familiar_form.identidade_genero }}
                             </div>
                         </div>
 
@@ -113,6 +135,50 @@
                                     </select>
                                     <label for="identidade_etnico_racial">Identidade étnico-racial</label>
                                 </div>
+                            </div>
+                        </div>
+
+                        <h4>Trabalho, escolaridade e saúde</h4>
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label for="{{ familiar_form.experiencia_trabalho.id_for_label }}">Experiência de trabalho</label>
+                                {{ familiar_form.experiencia_trabalho }}
+                            </div>
+                            <div class="form-field">
+                                <label for="{{ familiar_form.ocupacao.id_for_label }}">Ocupação/profissão do familiar</label>
+                                {{ familiar_form.ocupacao }}
+                            </div>
+                            <div class="form-field">
+                                <label for="{{ familiar_form.tipo_ocupacao.id_for_label }}">Tipo de ocupação atual</label>
+                                {{ familiar_form.tipo_ocupacao }}
+                            </div>
+                            <div class="form-field">
+                                <label for="{{ familiar_form.grau_instrucao.id_for_label }}">Grau de escolaridade</label>
+                                {{ familiar_form.grau_instrucao }}
+                            </div>
+                            <div class="form-field">
+                                <label for="{{ familiar_form.serie_concluida.id_for_label }}">Série final de estudo</label>
+                                {{ familiar_form.serie_concluida }}
+                            </div>
+                            <div class="form-field">
+                                <label>Tipos de deficiência</label>
+                                {{ familiar_form.deficiencias }}
+                            </div>
+                            <div class="form-field">
+                                <label for="{{ familiar_form.possui_comorbidade.id_for_label }}">Possui comorbidade/problema de saúde?</label>
+                                {{ familiar_form.possui_comorbidade }}
+                            </div>
+                            <div class="form-field">
+                                <label for="{{ familiar_form.comorbidades.id_for_label }}">Comorbidades/problemas de saúde</label>
+                                {{ familiar_form.comorbidades }}
+                            </div>
+                            <div class="form-field">
+                                <label for="{{ familiar_form.uso_substancias_psicoativas.id_for_label }}">Fez ou faz uso de substâncias psicoativas?</label>
+                                {{ familiar_form.uso_substancias_psicoativas }}
+                            </div>
+                            <div class="form-field">
+                                <label for="{{ familiar_form.substancias_psicoativas.id_for_label }}">Substâncias informadas</label>
+                                {{ familiar_form.substancias_psicoativas }}
                             </div>
                         </div>
 
@@ -240,7 +306,9 @@
                             </div>
                         </div>
 
-                        <div class="modal-footer">
+                        </section>
+
+                        <div class="modal-footer actions">
                             <button type="button" class="ghost-button" id="cancelFamiliarModal">Cancelar</button>
                             <button type="submit" class="primary-button">Salvar</button>
                         </div>
@@ -257,6 +325,7 @@
         const openFamiliarModal = document.getElementById('openFamiliarModal');
         const closeFamiliarModal = document.getElementById('closeFamiliarModal');
         const cancelFamiliarModal = document.getElementById('cancelFamiliarModal');
+        {% if familiar_form.errors %}familiarModal.classList.add('show');{% endif %}
 
         const closeModal = () => {
             if (familiarModal) familiarModal.classList.remove('show');

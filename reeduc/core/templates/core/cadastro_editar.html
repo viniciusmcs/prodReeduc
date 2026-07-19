@@ -191,15 +191,11 @@
                 <form method="post" enctype="multipart/form-data" class="form">
                     {% csrf_token %}
                     
-                    {% if form.errors %}
-                    <div class="form-errors">
-                        <strong>Verifique os campos abaixo:</strong>
-                        {{ form.non_field_errors }}
-                    </div>
-                    {% endif %}
+                    {% include "core/_form_errors.html" %}
 
                     <!-- Foto Section -->
                     <div class="form-section">
+                        <h2>Foto e identificação</h2>
                         <div class="edit-form-container">
                             <div class="foto-section">
                                 <h3>Foto</h3>

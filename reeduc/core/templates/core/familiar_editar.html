@@ -101,14 +101,9 @@
 {% block content %}
 <h1>Editar Familiar - {{ familiar.nome }}</h1>
 
-<form method="post" class="form">
+<form method="post" enctype="multipart/form-data" class="form">
     {% csrf_token %}
-    {% if form.errors %}
-    <div class="form-errors">
-        <strong>Verifique os campos abaixo:</strong>
-        {{ form.non_field_errors }}
-    </div>
-    {% endif %}
+    {% include "core/_form_errors.html" %}
 
     <section class="form-section">
         <h2>Dados pessoais</h2>
@@ -137,8 +132,14 @@
                 <label for="id_pessoa_transexual">Pessoa transexual</label>
                 {{ form.pessoa_transexual }}
             </div>
+            <div class="form-group">
+                <label for="id_foto">Foto</label>
+                {{ form.foto }}
+            </div>
         </div>
     </section>
+
+    {% include "core/_familiar_dicap_fields.html" %}
 
     <section class="form-section">
         <h2>Documentos</h2>

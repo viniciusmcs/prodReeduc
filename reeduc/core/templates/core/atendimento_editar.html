@@ -10,13 +10,10 @@
 
 <form method="post" class="form">
     {% csrf_token %}
-    {% if form.errors %}
-    <div class="form-errors">
-        <strong>Verifique os campos abaixo:</strong>
-        {{ form.non_field_errors }}
-    </div>
-    {% endif %}
+    {% include "core/_form_errors.html" %}
 
+    <section class="form-section">
+        <h2>Identificação</h2>
     <div class="grid">
         <div class="field">
             <label for="id_nome_pessoa_atendida">Nome da Pessoa</label>
@@ -42,7 +39,10 @@
             {{ form.perfil_pessoa_atendida }}
         </div>
     </div>
+    </section>
 
+    <section class="form-section">
+        <h2>Dados do atendimento</h2>
     <div class="grid">
         <div class="field">
             <label for="id_motivo_procura">Motivo</label>
@@ -71,10 +71,11 @@
             {{ form.descricao_atendimento }}
         </div>
     </div>
+    </section>
 
     <div class="form-actions">
         <button type="submit" class="primary-button">Salvar Alterações</button>
-        <a href="/home/" class="ghost-button">Cancelar</a>
+        <a href="/atendimentos/{{ atendimento.id }}/ver" class="ghost-button">Cancelar</a>
     </div>
 </form>
 {% endblock %}

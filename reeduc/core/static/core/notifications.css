@@ -1,0 +1,148 @@
+/* Non-blocking application notifications with a 3.5-second progress bar. */
+.app-toast-region {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 30000;
+    display: flex;
+    width: min(390px, calc(100vw - 32px));
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.app-toast {
+    --toast-accent: #2563eb;
+    --toast-soft: color-mix(in srgb, var(--toast-accent) 10%, var(--card));
+    position: relative;
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) 30px;
+    gap: 11px;
+    align-items: start;
+    overflow: hidden;
+    padding: 14px 13px 17px;
+    border: 1px solid color-mix(in srgb, var(--toast-accent) 30%, var(--border));
+    border-radius: 15px;
+    background: color-mix(in srgb, var(--card) 96%, transparent);
+    color: var(--text);
+    box-shadow: 0 18px 50px rgba(2, 8, 23, .22);
+    backdrop-filter: blur(16px);
+    pointer-events: auto;
+    animation: app-toast-in .26s cubic-bezier(.2, .8, .2, 1) both;
+}
+
+.app-toast--success { --toast-accent: #16a34a; }
+.app-toast--error { --toast-accent: #dc2626; }
+.app-toast--warning { --toast-accent: #d97706; }
+.app-toast--info { --toast-accent: #2563eb; }
+
+.app-toast__icon {
+    display: inline-flex;
+    width: 38px;
+    height: 38px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 11px;
+    background: var(--toast-soft);
+    color: var(--toast-accent);
+}
+
+.app-toast__icon .material-icons-outlined {
+    font-size: 21px;
+}
+
+.app-toast__content {
+    min-width: 0;
+    padding-top: 1px;
+}
+
+.app-toast__title {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.app-toast__message {
+    display: block;
+    overflow-wrap: anywhere;
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.app-toast__close {
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.app-toast__close:hover {
+    background: var(--toast-soft);
+    color: var(--toast-accent);
+}
+
+.app-toast__close .material-icons-outlined {
+    font-size: 17px;
+}
+
+.app-toast__progress {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: color-mix(in srgb, var(--toast-accent) 18%, transparent);
+}
+
+.app-toast__progress::after {
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-origin: left;
+    background: var(--toast-accent);
+    content: "";
+    animation: app-toast-progress var(--toast-duration, 3500ms) linear forwards;
+}
+
+.app-toast.is-leaving {
+    animation: app-toast-out .2s ease both;
+}
+
+@keyframes app-toast-in {
+    from { opacity: 0; transform: translate3d(18px, -8px, 0) scale(.98); }
+    to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes app-toast-out {
+    to { opacity: 0; transform: translate3d(18px, 0, 0) scale(.98); }
+}
+
+@keyframes app-toast-progress {
+    to { transform: scaleX(0); }
+}
+
+@media (max-width: 640px) {
+    .app-toast-region {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        width: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-toast,
+    .app-toast.is-leaving {
+        animation-duration: .01ms;
+    }
+}

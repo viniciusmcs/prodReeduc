@@ -87,13 +87,31 @@
 {% endblock %}
 
 {% block content %}
-                <div class="view-header">
-                    <h1>Agendamento {{ agendamento.id }}</h1>
-                    <span class="view-badge">{{ agendamento.nome_atendido }}</span>
+                <div class="operation-page">
+                <div class="operation-header">
+                    <div>
+                        <span class="operation-header__eyebrow">Agendamentos</span>
+                        <h1>Agendamento #{{ agendamento.id }}</h1>
+                        <p>Consulte os dados e prepare o próximo atendimento.</p>
+                    </div>
+                    <div class="operation-header__actions">
+                        <a class="operation-button" href="/agendamentos">
+                            <span class="material-icons-outlined">arrow_back</span>
+                            Voltar
+                        </a>
+                        <span class="view-badge">{{ agendamento.nome_atendido }}</span>
+                    </div>
                 </div>
 
-                <section class="table-card">
-                    <div class="table-card__body" style="padding: 20px 30px 20px;">
+                <section class="detail-card">
+                    <div class="detail-card__header">
+                        <span class="detail-card__icon material-icons-outlined">event</span>
+                        <div>
+                            <h2>Informações do agendamento</h2>
+                            <p>Dados da pessoa atendida, data, horário e modalidade.</p>
+                        </div>
+                    </div>
+                    <div class="detail-card__body">
                         <div class="detail-list">
                             <div class="detail-item">
                                 <strong>Nome do Atendido</strong>
@@ -111,18 +129,22 @@
                                 <strong>Tipo de Agendamento</strong>
                                 <span>{{ agendamento.get_tipo_agendamento_display|default:"-" }}</span>
                             </div>
-                            <div class="detail-item">
+                            <div class="detail-item detail-item--actions">
                                 <strong>Ações</strong>
-                                <div class="detail-actions">
-                                    <a class="primary-button" href="/agendamentos/{{ agendamento.id }}/editar" style="background: transparent; border: 1px solid #555555; color: #000000;">Editar</a>
+                                <div class="operation-actions">
+                                    <a class="operation-button" href="/agendamentos/{{ agendamento.id }}/editar">
+                                        <span class="material-icons-outlined">edit</span>
+                                        Editar agendamento
+                                    </a>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="observacoes">
+                        <div class="operation-notes">
                             <strong>Observações</strong>
                             <span>{{ agendamento.observacoes|default:"-" }}</span>
                         </div>
                     </div>
                 </section>
+                </div>
 {% endblock %}

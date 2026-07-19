@@ -6,31 +6,38 @@
 {% block nav_atendimentos %}active{% endblock %}
 
 {% block content %}
-<h1>Confirmar Exclusão</h1>
-
-<div class="alert alert--warning" style="padding: 16px; background: #fef3c7; border: 1px solid #fbbf24; border-radius: 6px; margin-bottom: 24px;">
-    <strong>Atenção!</strong> Você está prestes a excluir o atendimento abaixo. Esta ação não pode ser desfeita.
+<div class="operation-page confirm-card">
+<div class="operation-header">
+    <div>
+        <span class="operation-header__eyebrow">Ação permanente</span>
+        <h1>Excluir atendimento</h1>
+        <p>Revise as informações antes de confirmar.</p>
+    </div>
 </div>
 
-<section class="table-card">
-    <div class="table-card__body">
-        <table>
-            <tbody>
-                <tr><th>Nome da Pessoa</th><td>{{ atendimento.nome_pessoa_atendida }}</td></tr>
-                <tr><th>Data</th><td>{{ atendimento.data_atendimento|date:"d/m/Y" }}</td></tr>
-                <tr><th>Local</th><td>{{ atendimento.get_local_atendimento_display|default:"-" }}</td></tr>
-                <tr><th>Tipo</th><td>{{ atendimento.get_tipo_atendimento_display|default:"-" }}</td></tr>
-                <tr><th>Perfil</th><td>{{ atendimento.get_perfil_pessoa_atendida_display|default:"-" }}</td></tr>
-            </tbody>
-        </table>
+<div class="confirm-alert">
+    <span class="material-icons-outlined">warning_amber</span>
+    <div><strong>Atenção:</strong> esta ação não pode ser desfeita.</div>
+</div>
+
+<section class="detail-card">
+    <div class="detail-card__body">
+        <div class="detail-list">
+            <div class="detail-item"><strong>Nome da pessoa</strong><span>{{ atendimento.nome_pessoa_atendida }}</span></div>
+            <div class="detail-item"><strong>Data</strong><span>{{ atendimento.data_atendimento|date:"d/m/Y" }}</span></div>
+            <div class="detail-item"><strong>Local</strong><span>{{ atendimento.get_local_atendimento_display|default:"-" }}</span></div>
+            <div class="detail-item"><strong>Tipo</strong><span>{{ atendimento.get_tipo_atendimento_display|default:"-" }}</span></div>
+            <div class="detail-item"><strong>Perfil</strong><span>{{ atendimento.get_perfil_pessoa_atendida_display|default:"-" }}</span></div>
+        </div>
     </div>
 </section>
 
-<form method="post" style="margin-top: 24px;">
+<form method="post">
     {% csrf_token %}
-    <div style="display: flex; gap: 10px;">
-        <button type="submit" class="primary-button">Confirmar Exclusão</button>
-        <a href="/home/" class="ghost-button">Cancelar</a>
+    <div class="operation-actions">
+        <button type="submit" class="operation-button operation-button--danger"><span class="material-icons-outlined">delete</span>Confirmar exclusão</button>
+        <a href="/atendimentos/{{ atendimento.id }}/ver" class="operation-button">Cancelar</a>
     </div>
 </form>
+</div>
 {% endblock %}
