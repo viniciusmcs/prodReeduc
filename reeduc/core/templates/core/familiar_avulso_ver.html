@@ -85,7 +85,18 @@
         <div class="perfil-info">
             <p><strong>Nome:</strong> {{ familiar.nome }}</p>
             <p><strong>Nome social:</strong> {{ familiar.nome_social|default:"-" }}</p>
-            <p><strong>Data de nascimento:</strong> {{ familiar.data_nascimento|date:"d/m/Y"|default:"-" }}</p>
+                    <p><strong>Data de nascimento:</strong> {{ familiar.data_nascimento|date:"d/m/Y"|default:"-" }}</p>
+                    <p><strong>Identidade de gênero:</strong> {{ familiar.get_identidade_genero_display|default:"-" }}</p>
+                    <p><strong>Experiência de trabalho:</strong> {{ familiar.get_experiencia_trabalho_display|default:"-" }}</p>
+                    <p><strong>Ocupação/profissão:</strong> {{ familiar.ocupacao|default:"-" }}</p>
+                    <p><strong>Tipo de ocupação:</strong> {{ familiar.get_tipo_ocupacao_display|default:"-" }}</p>
+                    <p><strong>Grau de escolaridade:</strong> {{ familiar.get_grau_instrucao_display|default:"-" }}</p>
+                    <p><strong>Série final de estudo:</strong> {{ familiar.serie_concluida|default:"-" }}</p>
+                    <p><strong>Deficiências:</strong> {{ familiar.get_deficiencias_display|default:"-" }}</p>
+                    <p><strong>Possui comorbidade/problema de saúde:</strong> {{ familiar.get_possui_comorbidade_display|default:"-" }}</p>
+                    <p><strong>Comorbidades/problemas de saúde:</strong> {{ familiar.comorbidades|default:"-" }}</p>
+                    <p><strong>Uso de substâncias psicoativas:</strong> {{ familiar.get_uso_substancias_psicoativas_display|default:"-" }}</p>
+                    <p><strong>Substâncias informadas:</strong> {{ familiar.substancias_psicoativas|default:"-" }}</p>
             <p><strong>Parentesco:</strong> {{ familiar.parentesco|default:"-" }}</p>
             <p><strong>Nome do egresso:</strong> {{ familiar.nome_interno_referencia|default:"-" }}</p>
             <p><strong>Interno e egresso:</strong> {% if familiar.perfil_referencia_egresso %}Sim{% else %}Nao{% endif %}</p>
@@ -304,7 +315,7 @@
     const uploadPhotoFile = async (file) => {
         const validTypes = ['image/png', 'image/jpeg'];
         if (!validTypes.includes(file.type)) {
-            alert('Por favor, selecione apenas arquivos PNG ou JPEG');
+            window.ESPI.notify('Selecione apenas arquivos PNG ou JPEG.', 'warning');
             return false;
         }
 
@@ -320,13 +331,14 @@
             const data = await response.json();
             if (data.status === 'success') {
                 renderPhoto(data.foto_url || null);
+                window.ESPI.notify(data.message || 'Foto atualizada com sucesso.', 'success');
                 return true;
             }
-            alert(data.message || 'Erro ao enviar a foto');
+            window.ESPI.notify(data.message || 'Erro ao enviar a foto.', 'error');
             return false;
         } catch (error) {
             console.error('Erro ao enviar foto:', error);
-            alert('Erro ao enviar a foto');
+            window.ESPI.notify('Erro ao enviar a foto.', 'error');
             return false;
         }
     };
@@ -343,12 +355,13 @@
             const data = await response.json();
             if (data.status === 'success') {
                 renderPhoto(null);
+                window.ESPI.notify(data.message || 'Foto removida com sucesso.', 'success');
                 return;
             }
-            alert(data.message || 'Erro ao remover a foto');
+            window.ESPI.notify(data.message || 'Erro ao remover a foto.', 'error');
         } catch (error) {
             console.error('Erro ao remover foto:', error);
-            alert('Erro ao remover a foto');
+            window.ESPI.notify('Erro ao remover a foto.', 'error');
         }
     };
 

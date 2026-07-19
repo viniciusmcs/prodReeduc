@@ -29,6 +29,7 @@ class Cadastro(models.Model):
         ("homem_cis", "Homem cis"),
         ("mulher_trans", "Mulher trans"),
         ("homem_trans", "Homem trans"),
+        ("travesti", "Travesti"),
         ("nao_binario", "Não binário"),
         ("outro", "Outro"),
         ("nao_informado", "Prefiro não informar"),
@@ -102,14 +103,37 @@ class Cadastro(models.Model):
 
     status_ocupacional = models.CharField(max_length=30, choices=STATUS_OCUPACIONAL_CHOICES, blank=True)
 
+    EXPERIENCIA_TRABALHO_CHOICES = [
+        ("formal", "Experiência formal"),
+        ("informal", "Experiência informal"),
+        ("formal_informal", "Experiência formal e informal"),
+        ("sem_experiencia", "Sem experiência de trabalho"),
+        ("nao_informado", "Não informado"),
+    ]
+    TIPO_OCUPACAO_CHOICES = [
+        ("estudante", "Estudante"),
+        ("formal", "Ocupação formal"),
+        ("informal", "Ocupação informal"),
+        ("pensionista_aposentado", "Pensionista e/ou aposentado"),
+        ("sem_ocupacao", "Sem ocupação"),
+        ("nao_informado", "Não informado"),
+    ]
+    experiencia_trabalho = models.CharField(
+        max_length=30, choices=EXPERIENCIA_TRABALHO_CHOICES, blank=True
+    )
+    tipo_ocupacao = models.CharField(max_length=30, choices=TIPO_OCUPACAO_CHOICES, blank=True)
+
     GRAU_INSTRUCAO_CHOICES = [
         ("nao_informado", "Não informado"),
+        ("nao_alfabetizado", "Não alfabetizado"),
         ("fundamental_incompleto", "Ensino Fundamental Incompleto"),
         ("fundamental_completo", "Ensino Fundamental Completo"),
         ("medio_incompleto", "Ensino Médio Incompleto"),
         ("medio_completo", "Ensino Médio Completo"),
         ("superior_incompleto", "Ensino Superior Incompleto"),
         ("superior_completo", "Ensino Superior Completo"),
+        ("pos_graduacao_incompleta", "Pós-Graduação Incompleta"),
+        ("pos_graduacao_completa", "Pós-Graduação Completa"),
     ]
 
     grau_instrucao = models.CharField(max_length=30, choices=GRAU_INSTRUCAO_CHOICES, blank=True)
@@ -119,6 +143,36 @@ class Cadastro(models.Model):
     experiencia_escolar = models.TextField(blank=True)
     estuda_atualmente = models.CharField(max_length=3, choices=[("sim", "Sim"), ("nao", "Não")], blank=True)
     horario_turno_estudo = models.CharField(max_length=120, blank=True)
+
+    DEFICIENCIA_CHOICES = [
+        ("motora", "Deficiência motora/física"),
+        ("visual", "Deficiência visual"),
+        ("mental_intelectual", "Deficiência mental/intelectual"),
+        ("auditiva", "Deficiência auditiva"),
+        ("multipla", "Múltiplas deficiências"),
+    ]
+    COMORBIDADE_CHOICES = [
+        ("sim", "Sim"),
+        ("nao", "Não"),
+        ("nao_informado", "Não informado"),
+    ]
+    USO_SUBSTANCIAS_CHOICES = [
+        ("nunca", "Nunca fez uso"),
+        ("uso_anterior", "Fez uso anteriormente"),
+        ("uso_atual", "Faz uso atualmente"),
+        ("uso_anterior_atual", "Fez uso anteriormente e faz uso atualmente"),
+        ("nao_informado", "Não informado"),
+    ]
+
+    deficiencias = models.TextField(blank=True)
+    possui_comorbidade = models.CharField(
+        max_length=15, choices=COMORBIDADE_CHOICES, blank=True
+    )
+    comorbidades = models.TextField(blank=True)
+    uso_substancias_psicoativas = models.CharField(
+        max_length=30, choices=USO_SUBSTANCIAS_CHOICES, blank=True
+    )
+    substancias_psicoativas = models.TextField(blank=True)
 
     # --- Documentação apresentada ---
     doc_certidao_nascimento = models.BooleanField(default=False)
@@ -206,6 +260,14 @@ class Cadastro(models.Model):
     # Foto do cadastro
     foto = models.ImageField(upload_to='cadastros/', null=True, blank=True)
 
+    def get_deficiencias_display(self) -> str:
+        labels = dict(self.DEFICIENCIA_CHOICES)
+        return ", ".join(
+            labels.get(item.strip(), item.strip())
+            for item in (self.deficiencias or "").split(",")
+            if item.strip()
+        )
+
     def __str__(self) -> str:
         """Readable representation for admin and logs."""
         return self.nome
@@ -225,6 +287,9 @@ class Familiar(models.Model):
     nome_social = models.CharField(max_length=255, blank=True)
     data_nascimento = models.DateField(null=True, blank=True)
     sexo_biologico = models.CharField(max_length=20, choices=Cadastro.SEXO_BIOLOGICO_CHOICES, blank=True)
+    identidade_genero = models.CharField(
+        max_length=20, choices=Cadastro.IDENTIDADE_GENERO_CHOICES, blank=True
+    )
     identidade_etnico_racial = models.CharField(max_length=20, choices=Cadastro.ETNIA_CHOICES, blank=True)
     pessoa_transexual = models.BooleanField(default=False)
     cpf_numero = models.CharField(max_length=20, blank=True)
@@ -232,6 +297,26 @@ class Familiar(models.Model):
     documentos_possui = models.TextField(blank=True)
     documentos_ausentes = models.TextField(blank=True)
     parentesco = models.CharField(max_length=120, blank=True)
+    experiencia_trabalho = models.CharField(
+        max_length=30, choices=Cadastro.EXPERIENCIA_TRABALHO_CHOICES, blank=True
+    )
+    ocupacao = models.CharField(max_length=255, blank=True)
+    tipo_ocupacao = models.CharField(
+        max_length=30, choices=Cadastro.TIPO_OCUPACAO_CHOICES, blank=True
+    )
+    grau_instrucao = models.CharField(
+        max_length=30, choices=Cadastro.GRAU_INSTRUCAO_CHOICES, blank=True
+    )
+    serie_concluida = models.CharField(max_length=120, blank=True)
+    deficiencias = models.TextField(blank=True)
+    possui_comorbidade = models.CharField(
+        max_length=15, choices=Cadastro.COMORBIDADE_CHOICES, blank=True
+    )
+    comorbidades = models.TextField(blank=True)
+    uso_substancias_psicoativas = models.CharField(
+        max_length=30, choices=Cadastro.USO_SUBSTANCIAS_CHOICES, blank=True
+    )
+    substancias_psicoativas = models.TextField(blank=True)
     perfil_referencia_egresso = models.BooleanField(default=False)
     perfil_referencia_pre_egresso = models.BooleanField(default=False)
     nome_interno_referencia = models.CharField(max_length=255, blank=True)
@@ -242,6 +327,14 @@ class Familiar(models.Model):
     email_contato = models.EmailField(blank=True)
     foto = models.ImageField(upload_to="familiares/", null=True, blank=True)
     data_criacao = models.DateTimeField(auto_now_add=True)
+
+    def get_deficiencias_display(self) -> str:
+        labels = dict(Cadastro.DEFICIENCIA_CHOICES)
+        return ", ".join(
+            labels.get(item.strip(), item.strip())
+            for item in (self.deficiencias or "").split(",")
+            if item.strip()
+        )
 
     def __str__(self) -> str:
         return f"Familiar - {self.nome}"

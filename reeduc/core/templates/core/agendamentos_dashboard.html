@@ -5,24 +5,49 @@
 {% block nav_agendamentos %}active{% endblock %}
 
 {% block content %}
-                <h1>Agendamentos Pendentes <span style="color: #c00; font-size: 18px;">{{ total }}</span></h1>
-
-                <div class="links-row">
-                    <a href="/agendamentos" class="link">Ver todos os agendamentos</a>
-                    <a href="/agendamentos/adicionar" class="link">Criar novo agendamento</a>
+                <div class="operation-page">
+                <div class="operation-header">
+                    <div>
+                        <span class="operation-header__eyebrow">Organização da agenda</span>
+                        <h1>Agendamentos pendentes</h1>
+                        <p>Visualize compromissos futuros e encontre rapidamente a pessoa atendida.</p>
+                    </div>
+                    <div class="operation-header__actions">
+                        <span class="operation-count">{{ total }} pendente{{ total|pluralize }}</span>
+                        <a class="operation-button" href="/agendamentos">
+                            <span class="material-icons-outlined">calendar_month</span>
+                            Ver todos
+                        </a>
+                        <a class="operation-button operation-button--primary" href="/agendamentos/adicionar">
+                            <span class="material-icons-outlined">add</span>
+                            Novo agendamento
+                        </a>
+                    </div>
                 </div>
 
-                <form method="get" class="search-form" style="margin-bottom: 16px;">
-                    <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nome do atendido..." />
-                    <button type="submit" class="primary-button" style="display: none;">Pesquisar</button>
-                </form>
+                <section class="operation-filter">
+                    <h2 class="operation-filter__title">
+                        <span class="material-icons-outlined">search</span>
+                        Localizar agendamento
+                    </h2>
+                    <form method="get" class="grid">
+                        <div class="field">
+                            <label for="q">Nome da pessoa atendida</label>
+                            <input id="q" type="text" name="q" value="{{ query }}" placeholder="Digite o nome..." />
+                        </div>
+                        <div class="field">
+                            <button type="submit" class="operation-button operation-button--primary">Pesquisar</button>
+                        </div>
+                    </form>
+                </section>
 
-                <div class="table-card">
+                <div class="table-card operation-table">
                     <div class="table-card__header">
-                        <h3 style="margin: 0;">Agendamentos</h3>
+                        <h2>Próximos agendamentos</h2>
                     </div>
-                    <table class="table">
-                        <thead class="table-card__header">
+                    <div class="table-card__body">
+                    <table class="data-table">
+                        <thead>
                             <tr>
                                 <th>Data</th>
                                 <th>Atendido</th>
@@ -37,29 +62,36 @@
                             <tr>
                                 <td>{{ item.agendamento.data_agendamento|date:"d/m/Y" }}</td>
                                 <td>
+                                    <span class="operation-table__person">
+                                    <span class="operation-table__avatar">{{ item.agendamento.nome_atendido|first|upper }}</span>
                                     {% if item.cadastro %}
-                                        <a href="/cadastro/perfil/{{ item.cadastro.id }}" style="color: var(--primary); text-decoration: none; cursor: pointer;">
+                                        <a href="/cadastro/perfil/{{ item.cadastro.id }}">
                                             {{ item.agendamento.nome_atendido }}
                                         </a>
                                     {% else %}
                                         {{ item.agendamento.nome_atendido }}
                                     {% endif %}
+                                    </span>
                                 </td>
                                 <td>{{ item.agendamento.get_tipo_agendamento_display|default:"-" }}</td>
                                 <td>{{ item.agendamento.horario_atendimento|default:"-" }}</td>
                                 <td>{{ item.agendamento.observacoes|truncatewords:10 }}</td>
                                 <td>
-                                    <a href="/agendamentos/{{ item.agendamento.id }}/ver" style="color: #2563eb; text-decoration: none; margin-right: 8px;" title="Ver">👁️</a>
-                                    <a href="/agendamentos/{{ item.agendamento.id }}/editar" style="color: #16a34a; text-decoration: none; margin-right: 8px;" title="Editar">✏️</a>
-                                    <a href="/agendamentos/{{ item.agendamento.id }}/excluir" style="color: #dc2626; text-decoration: none;" title="Excluir">🗑️</a>
+                                    <div class="operation-row-actions">
+                                        <a class="operation-icon-button" href="/agendamentos/{{ item.agendamento.id }}/ver" title="Visualizar"><span class="material-icons-outlined">visibility</span></a>
+                                        <a class="operation-icon-button" href="/agendamentos/{{ item.agendamento.id }}/editar" title="Editar"><span class="material-icons-outlined">edit</span></a>
+                                        <a class="operation-icon-button operation-icon-button--danger" href="/agendamentos/{{ item.agendamento.id }}/excluir" title="Excluir"><span class="material-icons-outlined">delete_outline</span></a>
+                                    </div>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="6">Nenhum agendamento encontrado.</td>
+                                <td colspan="6" class="empty-operation">Nenhum agendamento encontrado.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
+                    </div>
+                </div>
                 </div>
 {% endblock %}

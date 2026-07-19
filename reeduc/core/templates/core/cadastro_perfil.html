@@ -114,13 +114,20 @@
                         </div>
 
                         <div class="perfil-documentos">
-                            <h3>🎓 Status Ocupacional e Percurso Educacional</h3>
-                            <p><strong>Status ocupacional:</strong> {{ cadastro.get_status_ocupacional_display|default:"-" }}</p>
-                            <p><strong>Grau de instrução:</strong> {{ cadastro.get_grau_instrucao_display|default:"-" }}</p>
+                    <h3>🎓 Status Ocupacional e Percurso Educacional</h3>
+                    <p><strong>Status ocupacional:</strong> {{ cadastro.get_status_ocupacional_display|default:"-" }}</p>
+                    <p><strong>Experiência de trabalho:</strong> {{ cadastro.get_experiencia_trabalho_display|default:"-" }}</p>
+                    <p><strong>Tipo de ocupação:</strong> {{ cadastro.get_tipo_ocupacao_display|default:"-" }}</p>
+                    <p><strong>Grau de instrução:</strong> {{ cadastro.get_grau_instrucao_display|default:"-" }}</p>
                             <p><strong>Última série concluída:</strong> {{ cadastro.serie_concluida|default:"-" }}</p>
                             <p><strong>Fez ensino superior:</strong> {{ cadastro.get_fez_ensino_superior_display|default:"-" }}</p>
                             <p><strong>Curso superior:</strong> {{ cadastro.curso_superior|default:"-" }}</p>
-                            <p><strong>Experiência escolar:</strong> {{ cadastro.experiencia_escolar|default:"-" }}</p>
+                    <p><strong>Experiência escolar:</strong> {{ cadastro.experiencia_escolar|default:"-" }}</p>
+                    <p><strong>Deficiências:</strong> {{ cadastro.get_deficiencias_display|default:"-" }}</p>
+                    <p><strong>Possui comorbidade/problema de saúde:</strong> {{ cadastro.get_possui_comorbidade_display|default:"-" }}</p>
+                    <p><strong>Comorbidades/problemas de saúde:</strong> {{ cadastro.comorbidades|default:"-" }}</p>
+                    <p><strong>Uso de substâncias psicoativas:</strong> {{ cadastro.get_uso_substancias_psicoativas_display|default:"-" }}</p>
+                    <p><strong>Substâncias informadas:</strong> {{ cadastro.substancias_psicoativas|default:"-" }}</p>
                             <p><strong>Estuda atualmente:</strong> {{ cadastro.get_estuda_atualmente_display|default:"-" }}</p>
                             <p><strong>Horário/turno:</strong> {{ cadastro.horario_turno_estudo|default:"-" }}</p>
                         </div>
@@ -157,13 +164,19 @@
 
     <div class="modal fade" id="familiarModal" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content">
+            <div class="modal-content familiar-modal-content">
                 <div class="modal-header">
-                    <h3>Cadastrar Familiar</h3>
-                    <button type="button" class="modal-close" id="closeFamiliarModal">×</button>
+                    <div>
+                        <span class="modal-eyebrow">Novo vínculo</span>
+                        <h3>Cadastrar familiar</h3>
+                        <p>Preencha os dados pessoais, sociais e de contato.</p>
+                    </div>
+                    <button type="button" class="modal-close" id="closeFamiliarModal" aria-label="Fechar">
+                        <span class="material-icons-outlined">close</span>
+                    </button>
                 </div>
                 <div class="modal-body">
-                    <form class="needs-validation" id="formularioFamiliar" method="post">
+                    <form class="form needs-validation" id="formularioFamiliar" method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         <input type="hidden" name="familiar_form" value="1" />
 
@@ -337,7 +350,7 @@
                             </div>
                         </div>
 
-                        <div class="modal-footer">
+                        <div class="modal-footer actions">
                             <button type="button" class="ghost-button" id="cancelFamiliarModal">Cancelar</button>
                             <button type="submit" class="primary-button">Salvar</button>
                         </div>

@@ -6,21 +6,27 @@
 {% block nav_atendimentos %}active{% endblock %}
 
 {% block content %}
-<div class="activities-header">
-    <h1>Atendimentos</h1>
-    <span class="badge">{{ total }}</span>
-</div>
-
-<div class="links-row">
-    <a href="/home/atendimentos/adicionar">Criar novo atendimento</a>
-</div>
-
-<section class="table-card">
-    <div class="table-card__header">
-        <h2>Filtrar</h2>
-        <span class="caret">▾</span>
+<div class="operation-page">
+<div class="operation-header">
+    <div>
+        <span class="operation-header__eyebrow">Acompanhamento</span>
+        <h1>Atendimentos</h1>
+        <p>Consulte o histórico, acompanhe pendências e registre novos atendimentos.</p>
     </div>
-    <div class="table-card__body">
+    <div class="operation-header__actions">
+        <span class="operation-count">{{ total }} registro{{ total|pluralize }}</span>
+        <a class="operation-button operation-button--primary" href="/home/atendimentos/adicionar">
+            <span class="material-icons-outlined">add</span>
+            Novo atendimento
+        </a>
+    </div>
+</div>
+
+<section class="operation-filter">
+    <h2 class="operation-filter__title">
+        <span class="material-icons-outlined">filter_alt</span>
+        Filtrar atendimentos
+    </h2>
         <form class="grid" method="get">
             <div class="field">
                 <label for="q">Buscar por nome</label>
@@ -38,19 +44,18 @@
                     <option value="realizado" {% if status == 'realizado' %}selected{% endif %}>Realizado</option>
                 </select>
             </div>
-            <div class="field" style="align-self: end;">
-                <button type="submit" class="primary-button">Aplicar</button>
+            <div class="field">
+                <button type="submit" class="operation-button operation-button--primary">Aplicar filtros</button>
             </div>
         </form>
-    </div>
 </section>
 
-<section class="table-card">
+<section class="table-card operation-table">
     <div class="table-card__header">
-        <h2>Lista de Atendimentos</h2>
+        <h2>Lista de atendimentos</h2>
     </div>
     <div class="table-card__body">
-        <table>
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>Nome</th>
@@ -63,23 +68,31 @@
             <tbody>
                 {% for atendimento in atendimentos %}
                 <tr>
-                    <td>{{ atendimento.nome_pessoa_atendida }}</td>
+                    <td>
+                        <span class="operation-table__person">
+                            <span class="operation-table__avatar">{{ atendimento.nome_pessoa_atendida|first|upper }}</span>
+                            {{ atendimento.nome_pessoa_atendida }}
+                        </span>
+                    </td>
                     <td>{{ atendimento.data_atendimento|date:"d/m/Y" }}</td>
                     <td>{{ atendimento.get_tipo_atendimento_display|default:"-" }}</td>
-                    <td>{{ atendimento.get_status_display }}</td>
+                    <td><span class="status-pill {% if atendimento.status == 'realizado' %}status-pill--success{% endif %}">{{ atendimento.get_status_display }}</span></td>
                     <td>
-                        <a href="/atendimentos/{{ atendimento.id }}/ver" title="Ver">👁️</a>
-                        <a href="/atendimentos/{{ atendimento.id }}/editar" title="Editar" style="margin-left: 6px;">✏️</a>
-                        <a href="/atendimentos/{{ atendimento.id }}/excluir" title="Excluir" style="margin-left: 6px;">🗑️</a>
+                        <div class="operation-row-actions">
+                            <a class="operation-icon-button" href="/atendimentos/{{ atendimento.id }}/ver" title="Visualizar"><span class="material-icons-outlined">visibility</span></a>
+                            <a class="operation-icon-button" href="/atendimentos/{{ atendimento.id }}/editar" title="Editar"><span class="material-icons-outlined">edit</span></a>
+                            <a class="operation-icon-button operation-icon-button--danger" href="/atendimentos/{{ atendimento.id }}/excluir" title="Excluir"><span class="material-icons-outlined">delete_outline</span></a>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5">Nenhum atendimento encontrado.</td>
+                    <td colspan="5" class="empty-operation">Nenhum atendimento encontrado para os filtros informados.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </section>
+</div>
 {% endblock %}

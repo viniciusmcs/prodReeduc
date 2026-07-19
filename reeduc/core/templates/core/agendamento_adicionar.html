@@ -56,13 +56,10 @@
 
                 <form method="post" class="form">
                     {% csrf_token %}
-                    {% if form.errors %}
-                    <div class="form-errors">
-                        <strong>Verifique os campos abaixo:</strong>
-                        {{ form.non_field_errors }}
-                    </div>
-                    {% endif %}
+                    {% include "core/_form_errors.html" %}
 
+                    <section class="form-section">
+                        <h2>Dados do agendamento</h2>
                     <div class="grid">
                         <div class="field autocomplete-container">
                             <label for="id_nome_atendido">Nome do Atendido</label>
@@ -92,9 +89,11 @@
                             {{ form.observacoes }}
                         </div>
                     </div>
+                    </section>
 
                     <div class="actions">
                         <button type="submit" class="primary-button">Criar Agendamento</button>
+                        <a href="/agendamentos" class="ghost-button">Cancelar</a>
                     </div>
                 </form>
 {% endblock %}

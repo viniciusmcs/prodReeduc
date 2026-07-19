@@ -7,16 +7,11 @@
 {% block content %}
 <h1>Cadastrar Familiar sem vínculo</h1>
 
-<div class="modal-dialog" style="max-width: 100%; margin: 0;">
-    <div class="modal-content" style="padding: 16px; background: #fff; border: 1px solid var(--border); border-radius: 10px;">
-        <form method="post" enctype="multipart/form-data" class="form">
+<form method="post" enctype="multipart/form-data" class="form">
             {% csrf_token %}
-            {% if form.errors %}
-            <div class="form-errors" style="margin-bottom: 12px;">
-                <strong>Verifique os campos abaixo:</strong>
-                {{ form.non_field_errors }}
-            </div>
-            {% endif %}
+            {% include "core/_form_errors.html" %}
+            <section class="form-section">
+                <h2>Dados pessoais</h2>
             <div class="grid">
                 <div class="field">
                     <label for="id_nome">Nome</label>
@@ -55,8 +50,15 @@
                     {{ form.pessoa_transexual.errors }}
                 </div>
             </div>
+            </section>
 
+            <section class="form-section">
+                <h2>Vínculo familiar</h2>
             <div class="grid">
+                <div class="field form-full-width">
+                    <label data-required-label="true">Situação do interno</label>
+                    <small class="field-hint">Selecione apenas uma opção: egresso ou pré-egresso.</small>
+                </div>
                 <div class="field">
                     <label for="id_parentesco">Parentesco</label>
                     {{ form.parentesco }}
@@ -81,7 +83,12 @@
                     {{ form.nome_interno_referencia.errors }}
                 </div>
             </div>
+            </section>
 
+            {% include "core/_familiar_dicap_fields.html" %}
+
+            <section class="form-section">
+                <h2>Documentação</h2>
             <div class="grid">
                 <div class="field">
                     <label for="id_cpf_numero">CPF</label>
@@ -107,7 +114,10 @@
                     {{ form.documentos_ausentes.errors }}
                 </div>
             </div>
+            </section>
 
+            <section class="form-section">
+                <h2>Contato</h2>
             <div class="grid">
                 <div class="field">
                     <label for="id_bairro">Bairro</label>
@@ -143,14 +153,13 @@
                     {{ form.foto.errors }}
                 </div>
             </div>
+            </section>
 
             <div class="actions">
                 <button type="submit" class="primary-button">Salvar</button>
                 <a class="ghost-button" href="/familiares">Cancelar</a>
             </div>
-        </form>
-    </div>
-</div>
+</form>
 {% endblock %}
 
 {% block extra_js %}
@@ -192,7 +201,12 @@
         formEl.addEventListener('submit', (event) => {
             if (!checkboxEgresso.checked && !checkboxPreEgresso.checked) {
                 event.preventDefault();
-                alert('Selecione uma opção: Egresso ou Pré-egresso.');
+                window.ESPI.notify(
+                    'Selecione uma opção: Egresso ou Pré-egresso.',
+                    'warning',
+                    { title: 'Campo obrigatório' }
+                );
+                checkboxEgresso.focus();
             }
         });
     }

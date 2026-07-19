@@ -1,0 +1,60 @@
+<section class="form-section">
+    <h2>Trabalho, escolaridade e saúde</h2>
+    <div class="form-grid">
+        <div class="form-group">
+            <label for="{{ form.identidade_genero.id_for_label }}">Identidade de gênero</label>
+            {{ form.identidade_genero }}
+            {{ form.identidade_genero.errors }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.experiencia_trabalho.id_for_label }}">Experiência de trabalho</label>
+            {{ form.experiencia_trabalho }}
+            {{ form.experiencia_trabalho.errors }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.ocupacao.id_for_label }}">Ocupação/profissão do familiar</label>
+            {{ form.ocupacao }}
+            {{ form.ocupacao.errors }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.tipo_ocupacao.id_for_label }}">Tipo de ocupação atual</label>
+            {{ form.tipo_ocupacao }}
+            {{ form.tipo_ocupacao.errors }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.grau_instrucao.id_for_label }}">Grau de escolaridade</label>
+            {{ form.grau_instrucao }}
+            {{ form.grau_instrucao.errors }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.serie_concluida.id_for_label }}">Série final de estudo</label>
+            {{ form.serie_concluida }}
+            {{ form.serie_concluida.errors }}
+        </div>
+        <div class="form-group form-full-width">
+            <label>Tipos de deficiência</label>
+            {{ form.deficiencias }}
+            {{ form.deficiencias.errors }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.possui_comorbidade.id_for_label }}">Possui comorbidade/problema de saúde?</label>
+            {{ form.possui_comorbidade }}
+            {{ form.possui_comorbidade.errors }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.comorbidades.id_for_label }}">Comorbidades/problemas de saúde</label>
+            {{ form.comorbidades }}
+            {{ form.comorbidades.errors }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.uso_substancias_psicoativas.id_for_label }}">Fez ou faz uso de substâncias psicoativas?</label>
+            {{ form.uso_substancias_psicoativas }}
+            {{ form.uso_substancias_psicoativas.errors }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.substancias_psicoativas.id_for_label }}">Substâncias informadas</label>
+            {{ form.substancias_psicoativas }}
+            {{ form.substancias_psicoativas.errors }}
+        </div>
+    </div>
+</section>

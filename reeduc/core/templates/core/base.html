@@ -9,6 +9,9 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'core/layout.css' %}?v=20260307" />
     {% block extra_css %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'core/forms-premium.css' %}?v=20260719-2" />
+    <link rel="stylesheet" href="{% static 'core/operations-premium.css' %}?v=20260719" />
+    <link rel="stylesheet" href="{% static 'core/notifications.css' %}?v=20260719" />
 </head>
 <body>
     <div class="app">
@@ -141,7 +144,16 @@
         </div>
     </div>
 
-    <script src="{% static 'core/app.js' %}?v=20260306"></script>
+    <div id="appToastRegion" class="app-toast-region" aria-live="polite" aria-atomic="false"></div>
+    {% if messages %}
+    <div id="serverMessages" hidden>
+        {% for message in messages %}
+        <span data-app-message data-type="{{ message.tags|default:'info' }}">{{ message }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <script src="{% static 'core/app.js' %}?v=20260719-2"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

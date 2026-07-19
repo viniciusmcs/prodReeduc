@@ -64,4 +64,5 @@ urlpatterns = [
     # Relatórios
     path("relatorios", views.relatorios_view, name="relatorios"),
     path("relatorios/pdf", views.relatorios_pdf_view, name="relatorios-pdf"),
+    path("relatorios/excel", views.relatorios_excel_view, name="relatorios-excel"),
 ]

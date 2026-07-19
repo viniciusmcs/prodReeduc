@@ -10,13 +10,10 @@
 
 <form method="post" class="form">
     {% csrf_token %}
-    {% if form.errors %}
-    <div class="form-errors">
-        <strong>Verifique os campos abaixo:</strong>
-        {{ form.non_field_errors }}
-    </div>
-    {% endif %}
+    {% include "core/_form_errors.html" %}
 
+    <section class="form-section">
+        <h2>Identificação e acesso</h2>
     <div class="grid">
         <div class="field">
             <label for="id_nome_completo">Nome Completo</label>
@@ -55,8 +52,10 @@
             {{ form.cargo_es.errors }}
         </div>
     </div>
+    </section>
 
     <div class="actions">
+        <a class="ghost-button" href="/administrar/usuarios">Cancelar</a>
         <button type="submit" class="primary-button">Criar</button>
     </div>
 </form>

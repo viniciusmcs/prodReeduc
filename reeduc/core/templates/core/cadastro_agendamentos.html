@@ -19,13 +19,13 @@
                     <a class="tab nav-link active" href="/cadastro/agendamentos/{{ cadastro.id }}">Agendamentos</a>
                 </div>
 
-                <section class="table-card">
+                <section class="table-card operation-table">
                     <div class="table-card__header">
                         <h2>Agendamentos</h2>
                         <span class="badge">{{ agendamentos|length }}</span>
                     </div>
                     <div class="table-card__body">
-                        <table>
+                        <table class="data-table">
                             <thead>
                                 <tr>
                                     <th>Data</th>
@@ -41,12 +41,15 @@
                                     <td>{{ agendamento.get_tipo_agendamento_display|default:"-" }}</td>
                                     <td>{{ agendamento.horario_atendimento|default:"-" }}</td>
                                     <td>
-                                        <a href="/agendamentos/{{ agendamento.id }}/ver" title="Ver">👁️</a>
+                                        <div class="operation-row-actions">
+                                            <a class="operation-icon-button" href="/agendamentos/{{ agendamento.id }}/ver" title="Visualizar"><span class="material-icons-outlined">visibility</span></a>
+                                            <a class="operation-icon-button" href="/agendamentos/{{ agendamento.id }}/editar" title="Editar"><span class="material-icons-outlined">edit</span></a>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="4">Nenhum agendamento registrado.</td>
+                                    <td colspan="4" class="empty-operation">Nenhum agendamento registrado.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

@@ -1,0 +1,724 @@
+/* Premium, accessible form system shared by every ESPI registration screen. */
+.form-page {
+    width: min(100%, 1320px);
+    margin: 0 auto;
+}
+
+.form-page > h1 {
+    margin: 0;
+    font-size: clamp(24px, 2.6vw, 34px);
+    line-height: 1.18;
+    letter-spacing: -.035em;
+    color: var(--text);
+}
+
+.form-page-subtitle {
+    max-width: 780px;
+    margin: 8px 0 24px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.premium-form {
+    counter-reset: premium-section;
+    display: grid;
+    gap: 18px;
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+}
+
+.premium-form .form-required-note {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    gap: 8px;
+    margin: 0;
+    padding: 8px 12px;
+    border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--primary) 7%, var(--card));
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.premium-form .form-required-note::before {
+    content: "info";
+    font-family: "Material Icons Outlined";
+    color: var(--primary);
+    font-size: 17px;
+}
+
+.required-marker {
+    margin-left: 3px;
+    color: #ef4444;
+    font-weight: 800;
+}
+
+.premium-form .form-section {
+    counter-increment: premium-section;
+    position: relative;
+    overflow: hidden;
+    margin: 0 !important;
+    padding: 24px !important;
+    border: 1px solid color-mix(in srgb, var(--border) 86%, var(--primary)) !important;
+    border-radius: 18px !important;
+    background:
+        radial-gradient(circle at 100% 0, color-mix(in srgb, var(--primary) 5%, transparent), transparent 34%),
+        var(--card) !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, .055);
+}
+
+.premium-form .form-section::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--primary), #5b8def);
+    opacity: .9;
+}
+
+.premium-form .form-section > h2 {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin: 0 0 6px !important;
+    color: var(--text) !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    letter-spacing: -.01em;
+}
+
+.premium-form .form-section > h2::before {
+    content: counter(premium-section, decimal-leading-zero);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary), #4f8cff);
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(0, 102, 255, .2);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .04em;
+}
+
+#formularioFamiliar .form-section > h4 {
+    margin: 24px 0 4px;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+#formularioFamiliar .row {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 16px;
+    margin: 16px 0 0 !important;
+}
+
+#formularioFamiliar .row > [class*="col-md"] {
+    grid-column: span 4;
+    width: auto;
+    min-width: 0;
+}
+
+#formularioFamiliar .row > .col-md-9 { grid-column: span 9; }
+#formularioFamiliar .row > .col-md-6 { grid-column: span 6; }
+#formularioFamiliar .row > .col-md-5 { grid-column: span 5; }
+#formularioFamiliar .row > .col-md-4 { grid-column: span 4; }
+#formularioFamiliar .row > .col-md-3 { grid-column: span 3; }
+
+#formularioFamiliar .form-floating {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 7px;
+}
+
+#formularioFamiliar .btn-group {
+    display: flex;
+    gap: 8px;
+}
+
+#formularioFamiliar .btn-check {
+    position: absolute;
+    opacity: 0;
+}
+
+#formularioFamiliar .btn-check + label {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    cursor: pointer;
+}
+
+#formularioFamiliar .btn-check:checked + label {
+    border-color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 9%, var(--card));
+    color: var(--primary) !important;
+}
+
+/* Linked-family list and modal */
+.familiares-panel {
+    margin-bottom: 18px;
+    padding: 20px !important;
+    border-radius: 18px !important;
+    box-shadow: 0 12px 34px rgba(15, 23, 42, .055);
+}
+
+.familiares-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.familiares-toolbar h2 {
+    margin: 0;
+    color: var(--text);
+    font-size: 18px;
+    letter-spacing: -.02em;
+}
+
+.familiares-toolbar p {
+    margin: 5px 0 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.familiares-toolbar .primary-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 10px 15px;
+    border-radius: 11px;
+    white-space: nowrap;
+    box-shadow: 0 8px 18px rgba(0, 102, 255, .2);
+}
+
+.familiares-toolbar .material-icons-outlined {
+    font-size: 19px;
+}
+
+#familiarModal {
+    padding: 22px;
+    background: rgba(2, 8, 23, .72);
+    backdrop-filter: blur(7px);
+}
+
+#familiarModal .modal-dialog {
+    width: min(1120px, 100%);
+    max-width: 1120px;
+}
+
+#familiarModal .familiar-modal-content {
+    max-height: min(92vh, 920px);
+    padding: 0 !important;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--border) 78%, var(--primary));
+    border-radius: 22px;
+    background: var(--card);
+    box-shadow: 0 28px 80px rgba(0, 0, 0, .32);
+}
+
+#familiarModal .modal-header {
+    position: relative;
+    z-index: 8;
+    margin: 0;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    background:
+        radial-gradient(circle at 0 0, color-mix(in srgb, var(--primary) 10%, transparent), transparent 42%),
+        var(--card);
+}
+
+#familiarModal .modal-header h3 {
+    margin: 2px 0 0;
+    color: var(--text);
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -.025em;
+}
+
+#familiarModal .modal-header p {
+    margin: 5px 0 0;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+#familiarModal .modal-eyebrow {
+    color: var(--primary);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+#familiarModal .modal-close {
+    display: inline-flex;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 40px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--card) 94%, var(--bg));
+    color: var(--text-secondary);
+    transition: border-color .18s ease, color .18s ease, transform .18s ease;
+}
+
+#familiarModal .modal-close:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: rotate(3deg);
+}
+
+#familiarModal .modal-body {
+    max-height: calc(min(92vh, 920px) - 101px);
+    padding: 22px 24px 26px;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+
+#familiarModal .premium-form .form-section {
+    overflow: visible;
+}
+
+/* The legacy document markup is normalized into spacious option cards. */
+#formularioFamiliar .mb-2.row {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px !important;
+}
+
+#formularioFamiliar .mb-2.row > .control-label,
+#formularioFamiliar .mb-2.row > .btn-group {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+}
+
+#formularioFamiliar .mb-2.row > .btn-group {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px !important;
+}
+
+#formularioFamiliar .mb-2.row > .btn-group > .col-md.row {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-column: auto !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+}
+
+#formularioFamiliar .mb-2.row .form-check {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+}
+
+#formularioFamiliar .mb-2.row .form-check-label {
+    overflow-wrap: anywhere;
+}
+
+#formularioFamiliar .row:has(.btn-check) {
+    grid-template-columns: minmax(0, 1fr) !important;
+}
+
+#formularioFamiliar .row:has(.btn-check) > .control-label,
+#formularioFamiliar .row:has(.btn-check) > .btn-group {
+    grid-column: 1 / -1 !important;
+}
+
+#formularioFamiliar .row:has(.btn-check) > .btn-group {
+    width: fit-content;
+}
+
+#familiarModal .premium-form .actions {
+    bottom: 0;
+    margin-top: 18px !important;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--card) 96%, transparent);
+}
+
+.premium-form .section-description {
+    margin: 0 0 20px 43px;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.premium-form .grid,
+.premium-form .form-grid {
+    display: grid !important;
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+    gap: 18px !important;
+    margin-top: 18px;
+}
+
+.premium-form .form-section > .grid:first-of-type,
+.premium-form .form-section > .form-grid:first-of-type {
+    margin-top: 20px;
+}
+
+.premium-form .field,
+.premium-form .form-field,
+.premium-form .form-group {
+    grid-column: span 4;
+    min-width: 0;
+    display: flex !important;
+    flex-direction: column;
+    gap: 7px !important;
+}
+
+.premium-form .form-full-width,
+.premium-form .field:has(textarea),
+.premium-form .form-field:has(textarea),
+.premium-form .form-group:has(textarea),
+.premium-form .field:has(ul),
+.premium-form .form-field:has(ul),
+.premium-form .form-group:has(ul) {
+    grid-column: 1 / -1;
+}
+
+.premium-form .grid--checks > .check {
+    grid-column: span 3;
+}
+
+.premium-form label,
+.premium-form .control-label {
+    color: var(--text-secondary) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 1.4;
+    letter-spacing: .025em !important;
+    text-transform: none !important;
+}
+
+.premium-form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.premium-form select,
+.premium-form textarea {
+    width: 100%;
+    min-height: 46px;
+    padding: 11px 13px !important;
+    border: 1px solid color-mix(in srgb, var(--border) 90%, var(--text-secondary)) !important;
+    border-radius: 11px !important;
+    outline: none;
+    background: color-mix(in srgb, var(--card) 96%, var(--bg)) !important;
+    color: var(--text) !important;
+    font: 500 14px/1.4 Inter, sans-serif !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .025);
+    transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.premium-form textarea {
+    min-height: 94px;
+    resize: vertical;
+}
+
+.premium-form input:hover,
+.premium-form select:hover,
+.premium-form textarea:hover {
+    border-color: color-mix(in srgb, var(--primary) 45%, var(--border)) !important;
+}
+
+.premium-form input:focus,
+.premium-form select:focus,
+.premium-form textarea:focus {
+    border-color: var(--primary) !important;
+    background: var(--card) !important;
+    box-shadow: 0 0 0 4px rgba(0, 102, 255, .11) !important;
+}
+
+.premium-form input[readonly] {
+    background: var(--bg) !important;
+    color: var(--text-secondary) !important;
+}
+
+.premium-form input[type="checkbox"],
+.premium-form input[type="radio"] {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+    margin: 0;
+    accent-color: var(--primary);
+}
+
+.premium-form input[type="file"] {
+    width: 100%;
+    padding: 7px;
+    border: 1px dashed color-mix(in srgb, var(--primary) 45%, var(--border));
+    border-radius: 11px;
+    background: color-mix(in srgb, var(--primary) 4%, var(--card));
+    color: var(--text-secondary);
+}
+
+.premium-form input[type="file"]::file-selector-button {
+    margin-right: 10px;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--primary);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.premium-form ul[id^="id_"] {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important;
+    gap: 9px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+}
+
+.premium-form ul[id^="id_"] li {
+    margin: 0 !important;
+}
+
+.premium-form ul[id^="id_"] label,
+.premium-form .check,
+.premium-form .form-check {
+    display: flex !important;
+    min-height: 40px;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 11px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--card) 96%, var(--bg));
+    color: var(--text) !important;
+    cursor: pointer;
+    transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+
+.premium-form ul[id^="id_"] label:hover,
+.premium-form .check:hover,
+.premium-form .form-check:hover {
+    border-color: color-mix(in srgb, var(--primary) 50%, var(--border));
+    background: color-mix(in srgb, var(--primary) 5%, var(--card));
+    transform: translateY(-1px);
+}
+
+.premium-form .inline-options {
+    gap: 8px !important;
+}
+
+.premium-form .inline-options .radio {
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+}
+
+.premium-form .is-conditional {
+    transition: opacity .2s ease, transform .2s ease;
+}
+
+.premium-form .is-conditional-hidden {
+    display: none !important;
+}
+
+.premium-form .conditional-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.premium-form .conditional-hint::before {
+    content: "subdirectory_arrow_right";
+    font-family: "Material Icons Outlined";
+    color: var(--primary);
+    font-size: 15px;
+}
+
+.premium-form .form-errors {
+    margin: 0 !important;
+    padding: 14px 16px !important;
+    border: 1px solid #fca5a5 !important;
+    border-radius: 12px !important;
+    background: #fff1f2 !important;
+    color: #b42318 !important;
+}
+
+.form-error-summary__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+}
+
+.form-error-summary__title .material-icons-outlined {
+    font-size: 20px;
+}
+
+.form-error-summary__list {
+    margin: 8px 0 0 28px;
+    padding: 0;
+    font-size: 12px;
+}
+
+.premium-form .errorlist {
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none;
+    color: #dc2626;
+    font-size: 12px;
+}
+
+.premium-form .actions,
+.premium-form .form-actions {
+    position: sticky;
+    bottom: 12px;
+    z-index: 5;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin: 4px 0 0 !important;
+    padding: 14px !important;
+    border: 1px solid color-mix(in srgb, var(--border) 86%, var(--primary));
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--card) 91%, transparent);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, .11);
+    backdrop-filter: blur(14px);
+}
+
+.premium-form .primary-button {
+    min-height: 44px;
+    padding: 11px 20px !important;
+    border-radius: 11px !important;
+    background: linear-gradient(135deg, var(--primary), #0054d6) !important;
+    box-shadow: 0 8px 18px rgba(0, 102, 255, .22);
+    font-weight: 700;
+}
+
+.premium-form .primary-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 11px 22px rgba(0, 102, 255, .28);
+}
+
+.premium-form .ghost-button {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    margin: 0 !important;
+    padding: 10px 16px !important;
+    border: 1px solid var(--border);
+    border-radius: 11px !important;
+    background: var(--card);
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.premium-form .tooltip {
+    vertical-align: middle;
+}
+
+.premium-form .autocomplete-list {
+    top: calc(100% + 4px);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 980px) {
+    .premium-form .field,
+    .premium-form .form-field,
+    .premium-form .form-group {
+        grid-column: span 6;
+    }
+
+    .premium-form .grid--checks > .check {
+        grid-column: span 6;
+    }
+}
+
+@media (max-width: 640px) {
+    .form-page-subtitle {
+        margin-bottom: 18px;
+    }
+
+    .premium-form .form-section {
+        padding: 18px !important;
+        border-radius: 14px !important;
+    }
+
+    .premium-form .field,
+    .premium-form .form-field,
+    .premium-form .form-group {
+        grid-column: 1 / -1;
+    }
+
+    .premium-form .grid--checks > .check {
+        grid-column: 1 / -1;
+    }
+
+    .premium-form .section-description {
+        margin-left: 0;
+    }
+
+    .premium-form .actions,
+    .premium-form .form-actions {
+        position: static;
+        flex-direction: column-reverse;
+    }
+
+    .premium-form .actions > *,
+    .premium-form .form-actions > * {
+        width: 100%;
+    }
+
+    #formularioFamiliar .row > [class*="col-md"] {
+        grid-column: 1 / -1;
+    }
+
+    .familiares-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .familiares-toolbar .primary-button {
+        justify-content: center;
+    }
+
+    #familiarModal {
+        padding: 8px;
+    }
+
+    #familiarModal .familiar-modal-content {
+        max-height: 96vh;
+        border-radius: 16px;
+    }
+
+    #familiarModal .modal-header,
+    #familiarModal .modal-body {
+        padding-right: 16px;
+        padding-left: 16px;
+    }
+
+    #familiarModal .modal-body {
+        max-height: calc(96vh - 101px);
+    }
+
+    #formularioFamiliar .mb-2.row > .btn-group,
+    #formularioFamiliar .mb-2.row > .btn-group > .col-md.row {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+}

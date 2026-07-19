@@ -6,6 +6,7 @@ Keep views thin: business logic stays minimal and delegated.
 from datetime import datetime
 
 from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib import messages
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import IntegrityError, models as db_models
@@ -14,7 +15,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .forms import AdminUserCreateForm, AgendamentoForm, AtendimentoForm, CadastroForm, FamiliarForm, LembreteForm
-from django.utils.dateparse import parse_date
 
 from .models import Agendamento, Atendimento, Cadastro, Familiar, Lembrete, UserProfile
 
@@ -67,9 +67,10 @@ def home_view(request):
 def cadastro_adicionar_view(request):
     """Create a new cadastro with the requested identification fields."""
     if request.method == "POST":
-        form = CadastroForm(request.POST)
+        form = CadastroForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
+            messages.success(request, "Cadastro realizado com sucesso.")
             return redirect("cadastro-lista")
     else:
         form = CadastroForm()
@@ -134,29 +135,17 @@ def cadastro_familiares_view(request, cadastro_id: int):
     """Render and manage familiares for a cadastro."""
     cadastro = get_object_or_404(Cadastro, id=cadastro_id)
     if request.method == "POST" and request.POST.get("familiar_form") == "1":
-        documentos_possui = ", ".join(request.POST.getlist("documentos_possui"))
-        documentos_ausentes = ", ".join(request.POST.getlist("documentos_ausentes"))
-
-        Familiar.objects.create(
-            cadastro=cadastro,
-            nome=request.POST.get("nome", "").strip(),
-            nome_social=request.POST.get("nome_social", "").strip(),
-            data_nascimento=parse_date(request.POST.get("data_nascimento", "") or "") or None,
-            sexo_biologico=request.POST.get("sexo_biologico", "").strip(),
-            identidade_etnico_racial=request.POST.get("identidade_etnico_racial", "").strip(),
-            pessoa_transexual=request.POST.get("pessoa_transexual", "") in ("1", "sim", "on"),
-            cpf_numero=request.POST.get("cpf_numero", "").strip(),
-            nis_numero=request.POST.get("nis_numero", "").strip(),
-            documentos_possui=documentos_possui,
-            documentos_ausentes=documentos_ausentes,
-            parentesco=request.POST.get("parentesco", "").strip(),
-            bairro=request.POST.get("bairro", "").strip(),
-            telefone_numero=request.POST.get("telefone_numero", "").strip(),
-            telefone_contato=request.POST.get("telefone_contato", "").strip(),
-            telefone_observacao=request.POST.get("telefone_observacao", "").strip(),
-            email_contato=request.POST.get("email_contato", "").strip(),
+        familiar_form = FamiliarForm(
+            request.POST,
+            request.FILES,
+            instance=Familiar(cadastro=cadastro),
         )
-        return redirect(f"/cadastro/familiares/{cadastro_id}")
+        if familiar_form.is_valid():
+            familiar_form.save()
+            messages.success(request, "Familiar vinculado com sucesso.")
+            return redirect(f"/cadastro/familiares/{cadastro_id}")
+    else:
+        familiar_form = FamiliarForm(instance=Familiar(cadastro=cadastro))
 
     familiares = cadastro.familiares.all().order_by("-data_criacao")
     return render(
@@ -165,6 +154,7 @@ def cadastro_familiares_view(request, cadastro_id: int):
         {
             "cadastro": cadastro,
             "familiares": familiares,
+            "familiar_form": familiar_form,
         },
     )
 
@@ -276,9 +266,10 @@ def familiar_editar_view(request, familiar_id: int):
     """Edit familiar details."""
     familiar = get_object_or_404(Familiar, id=familiar_id)
     if request.method == "POST":
-        form = FamiliarForm(request.POST, instance=familiar)
+        form = FamiliarForm(request.POST, request.FILES, instance=familiar)
         if form.is_valid():
             form.save()
+            messages.success(request, "Dados do familiar atualizados com sucesso.")
             if familiar.cadastro_id is None:
                 return redirect("familiares-avulsos-lista")
             return redirect(f"/cadastro/familiares/{familiar.cadastro_id}")
@@ -295,6 +286,7 @@ def familiar_excluir_view(request, familiar_id: int):
     if request.method == "POST":
         cadastro_id = familiar.cadastro_id
         familiar.delete()
+        messages.success(request, "Familiar excluído com sucesso.")
         if cadastro_id is None:
             return redirect("familiares-avulsos-lista")
         return redirect(f"/cadastro/familiares/{cadastro_id}")
@@ -310,6 +302,7 @@ def familiar_avulso_adicionar_view(request):
             familiar = form.save(commit=False)
             familiar.cadastro = None
             familiar.save()
+            messages.success(request, "Familiar cadastrado com sucesso.")
             return redirect("familiares-avulsos-lista")
     else:
         form = FamiliarForm()
@@ -367,6 +360,7 @@ def familiar_avulso_editar_view(request, familiar_id: int):
             familiar = form.save(commit=False)
             familiar.cadastro = None
             familiar.save()
+            messages.success(request, "Dados do familiar atualizados com sucesso.")
             return redirect("familiares-avulsos-lista")
     else:
         form = FamiliarForm(instance=familiar)
@@ -384,6 +378,7 @@ def familiar_avulso_excluir_view(request, familiar_id: int):
     familiar = get_object_or_404(Familiar, id=familiar_id, cadastro__isnull=True)
     if request.method == "POST":
         familiar.delete()
+        messages.success(request, "Familiar excluído com sucesso.")
         return redirect("familiares-avulsos-lista")
     return render(request, "core/familiar_avulso_excluir.html", {"familiar": familiar})
 
@@ -453,6 +448,7 @@ def anotacoes_editar_view(request):
                 lembrete_obj.criado_por = request.user
             lembrete_obj.atualizado_por = request.user
             lembrete_obj.save()
+            messages.success(request, "Anotação salva com sucesso.")
             if cadastro:
                 return redirect("cadastro-perfil", cadastro_id=cadastro.id)
             return redirect("home")
@@ -485,6 +481,7 @@ def cadastro_editar_view(request, cadastro_id: int):
             if request.POST.get("remover_foto") == "1" and not request.FILES.get("foto"):
                 obj.foto = None
             obj.save()
+            messages.success(request, "Cadastro atualizado com sucesso.")
             return redirect("cadastro-lista")
     else:
         form = CadastroForm(instance=cadastro)
@@ -498,6 +495,7 @@ def cadastro_excluir_view(request, cadastro_id: int):
     cadastro = get_object_or_404(Cadastro, id=cadastro_id)
     if request.method == "POST":
         cadastro.delete()
+        messages.success(request, "Cadastro excluído com sucesso.")
         return redirect("cadastro-lista")
     return render(request, "core/cadastro_excluir.html", {"cadastro": cadastro})
 
@@ -511,6 +509,7 @@ def atendimento_adicionar_view(request):
             atendimento = form.save(commit=False)
             atendimento.profissional_responsavel = request.user.get_username()
             atendimento.save()
+            messages.success(request, "Atendimento registrado com sucesso.")
             return redirect("home")
     else:
         form = AtendimentoForm(
@@ -559,6 +558,7 @@ def atendimento_realizado_view(request, atendimento_id: int):
     if request.method == "POST":
         atendimento.status = "realizado"
         atendimento.save()
+        messages.success(request, "Atendimento marcado como realizado.")
     return redirect(f"/atendimentos/{atendimento_id}/ver")
 
 
@@ -577,6 +577,7 @@ def atendimento_editar_view(request, atendimento_id: int):
         form = AtendimentoForm(request.POST, instance=atendimento)
         if form.is_valid():
             form.save()
+            messages.success(request, "Atendimento atualizado com sucesso.")
             return redirect("home")
     else:
         form = AtendimentoForm(instance=atendimento)
@@ -590,6 +591,7 @@ def atendimento_excluir_view(request, atendimento_id: int):
     atendimento = get_object_or_404(Atendimento, id=atendimento_id)
     if request.method == "POST":
         atendimento.delete()
+        messages.success(request, "Atendimento excluído com sucesso.")
         return redirect("home")
     return render(request, "core/atendimento_excluir.html", {"atendimento": atendimento})
 
@@ -601,6 +603,7 @@ def agendamento_adicionar_view(request):
         form = AgendamentoForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, "Agendamento criado com sucesso.")
             return redirect("agendamentos-dashboard")
     else:
         form = AgendamentoForm(initial={"data_agendamento": timezone.localdate()})
@@ -623,6 +626,7 @@ def agendamento_editar_view(request, agendamento_id: int):
         form = AgendamentoForm(request.POST, instance=agendamento)
         if form.is_valid():
             form.save()
+            messages.success(request, "Agendamento atualizado com sucesso.")
             return redirect("agendamentos-dashboard")
     else:
         form = AgendamentoForm(instance=agendamento)
@@ -636,6 +640,7 @@ def agendamento_excluir_view(request, agendamento_id: int):
     agendamento = get_object_or_404(Agendamento, id=agendamento_id)
     if request.method == "POST":
         agendamento.delete()
+        messages.success(request, "Agendamento excluído com sucesso.")
         return redirect("agendamentos-dashboard")
     return render(request, "core/agendamento_excluir.html", {"agendamento": agendamento})
 
@@ -689,8 +694,9 @@ def user_profile_update_view(request, username: str):
                 request.user.first_name = ""
                 request.user.last_name = ""
             request.user.save()
-            profile_update_success = "Dados atualizados com sucesso."
+            messages.success(request, "Dados do perfil atualizados com sucesso.")
             return redirect(f"/usuario/perfil/{request.user.username}/editar")
+        messages.error(request, profile_update_error)
 
     return render(
         request,
@@ -730,7 +736,9 @@ def user_profile_password_view(request, username: str):
             from django.contrib.auth import update_session_auth_hash
 
             update_session_auth_hash(request, request.user)
-            password_success = "Senha alterada com sucesso."
+            messages.success(request, "Senha alterada com sucesso.")
+        else:
+            messages.error(request, password_error)
 
     return render(
         request,
@@ -910,6 +918,7 @@ def admin_user_add_view(request):
         if form.is_valid():
             try:
                 form.save()
+                messages.success(request, "Usuário criado com sucesso.")
                 return redirect("admin-users-list")
             except IntegrityError:
                 form.add_error("username", "Nome de usuário já existe.")
@@ -938,6 +947,10 @@ def admin_user_toggle_active_view(request, user_id: int):
     if user.id != request.user.id:
         user.is_active = not user.is_active
         user.save()
+        messages.success(
+            request,
+            "Usuário ativado com sucesso." if user.is_active else "Usuário desativado com sucesso.",
+        )
     return redirect("admin-users-list")
 
 
@@ -949,6 +962,7 @@ def admin_user_delete_view(request, user_id: int):
     user = get_object_or_404(User, id=user_id)
     if request.method == "POST" and user.id != request.user.id:
         user.delete()
+        messages.success(request, "Usuário excluído com sucesso.")
         return redirect("admin-users-list")
     return render(request, "core/admin_user_delete.html", {"user_obj": user})
 
@@ -1071,6 +1085,20 @@ def _apply_cadastro_filters(qs, params):
         qs = qs.filter(grau_instrucao=params["grau_instrucao"])
     if params.get("status_ocupacional"):
         qs = qs.filter(status_ocupacional=params["status_ocupacional"])
+    if params.get("identidade_genero"):
+        qs = qs.filter(identidade_genero=params["identidade_genero"])
+    if params.get("experiencia_trabalho"):
+        qs = qs.filter(experiencia_trabalho=params["experiencia_trabalho"])
+    if params.get("tipo_ocupacao"):
+        qs = qs.filter(tipo_ocupacao=params["tipo_ocupacao"])
+    if params.get("deficiencia"):
+        qs = qs.filter(deficiencias__icontains=params["deficiencia"])
+    if params.get("possui_comorbidade"):
+        qs = qs.filter(possui_comorbidade=params["possui_comorbidade"])
+    if params.get("uso_substancias_psicoativas"):
+        qs = qs.filter(
+            uso_substancias_psicoativas=params["uso_substancias_psicoativas"]
+        )
     if params.get("zona_cidade"):
         qs = qs.filter(zona_cidade=params["zona_cidade"])
     if params.get("nome"):
@@ -1098,6 +1126,18 @@ def _report_querysets(params):
         familiares = familiares.filter(sexo_biologico=params["sexo_biologico"])
     if params.get("etnia"):
         familiares = familiares.filter(identidade_etnico_racial=params["etnia"])
+    for key in (
+        "identidade_genero",
+        "experiencia_trabalho",
+        "tipo_ocupacao",
+        "grau_instrucao",
+        "possui_comorbidade",
+        "uso_substancias_psicoativas",
+    ):
+        if params.get(key):
+            familiares = familiares.filter(**{key: params[key]})
+    if params.get("deficiencia"):
+        familiares = familiares.filter(deficiencias__icontains=params["deficiencia"])
     if params.get("nome"):
         nome = params["nome"]
         familiares = familiares.filter(
@@ -1109,7 +1149,7 @@ def _report_querysets(params):
     # These attributes only exist on a linked egresso. When selected, avulsos
     # cannot be evaluated and only relatives of matching cadastros are valid.
     linked_filter_keys = (
-        "status_cadastro", "grau_instrucao", "status_ocupacional", "zona_cidade",
+        "status_cadastro", "status_ocupacional", "zona_cidade",
     )
     if any(params.get(key) for key in linked_filter_keys):
         familiares = familiares.filter(cadastro__in=cadastros)
@@ -1129,6 +1169,100 @@ def _report_querysets(params):
     return cadastros, familiares, atendimentos, agendamentos
 
 
+AGE_BANDS = (
+    ("Menor de 18", None, 17),
+    ("18 a 24", 18, 24),
+    ("25 a 29", 25, 29),
+    ("30 a 34", 30, 34),
+    ("35 a 59", 35, 59),
+    ("60 a 74", 60, 74),
+    ("75 ou mais", 75, None),
+)
+
+
+def _age_on(birth_date, reference_date=None):
+    if not birth_date:
+        return None
+    reference_date = reference_date or timezone.localdate()
+    return (
+        reference_date.year
+        - birth_date.year
+        - ((reference_date.month, reference_date.day) < (birth_date.month, birth_date.day))
+    )
+
+
+def _age_distribution(objects):
+    counts = {label: 0 for label, _minimum, _maximum in AGE_BANDS}
+    missing = 0
+    for obj in objects:
+        age = _age_on(obj.data_nascimento)
+        if age is None:
+            missing += 1
+            continue
+        for label, minimum, maximum in AGE_BANDS:
+            if (minimum is None or age >= minimum) and (maximum is None or age <= maximum):
+                counts[label] += 1
+                break
+    rows = list(counts.items())
+    if missing:
+        rows.append(("Data de nascimento não informada", missing))
+    return rows
+
+
+def _age_band_label(birth_date):
+    age = _age_on(birth_date)
+    if age is None:
+        return "Não informada"
+    for label, minimum, maximum in AGE_BANDS:
+        if (minimum is None or age >= minimum) and (maximum is None or age <= maximum):
+            return label
+    return "Não informada"
+
+
+def _choice_distribution(queryset, field, choices):
+    rows = [(label, queryset.filter(**{field: value}).count()) for value, label in choices]
+    blank_count = queryset.filter(**{field: ""}).count()
+    if blank_count:
+        rows.append(("Não informado", blank_count))
+    return rows
+
+
+def _multiple_choice_distribution(objects, field, choices):
+    counts = {value: 0 for value, _label in choices}
+    unreported = 0
+    for obj in objects:
+        selected = {
+            item.strip() for item in (getattr(obj, field, "") or "").split(",") if item.strip()
+        }
+        if not selected:
+            unreported += 1
+        for value in selected:
+            if value in counts:
+                counts[value] += 1
+    rows = [(label, counts[value]) for value, label in choices]
+    if unreported:
+        rows.append(("Sem deficiência informada", unreported))
+    return rows
+
+
+def _text_distribution(objects, field, empty_label="Não informado"):
+    counts = {}
+    for obj in objects:
+        value = (getattr(obj, field, "") or "").strip() or empty_label
+        counts[value] = counts.get(value, 0) + 1
+    return sorted(counts.items(), key=lambda item: item[0].casefold())
+
+
+def _deficiencias_display(obj):
+    labels = dict(Cadastro.DEFICIENCIA_CHOICES)
+    selected = [
+        labels.get(item.strip(), item.strip())
+        for item in (obj.deficiencias or "").split(",")
+        if item.strip()
+    ]
+    return ", ".join(selected)
+
+
 @login_required
 def relatorios_pdf_view(request):
     """Generate a PDF report based on selected sections and filters."""
@@ -1141,6 +1275,7 @@ def relatorios_pdf_view(request):
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.enums import TA_CENTER, TA_LEFT
     import io
+    from xml.sax.saxutils import escape
 
     params = request.GET
     secoes = params.getlist("secao")
@@ -1208,7 +1343,11 @@ def relatorios_pdf_view(request):
     cell = styles["CellText"]
 
     def make_para(text):
-        return Paragraph(str(text) if text else "—", cell)
+        return Paragraph(escape(str(text)) if text else "—", cell)
+
+    def make_lines(*lines):
+        safe_lines = [escape(str(line)) for line in lines if line]
+        return Paragraph("<br/>".join(safe_lines) if safe_lines else "—", cell)
 
     def header_para(text):
         return Paragraph(str(text), styles["SmallBold"])
@@ -1241,47 +1380,108 @@ def relatorios_pdf_view(request):
         story.append(KeepTogether([quant_title, tbl]))
         story.append(Spacer(1, 6 * mm))
 
-        # Distribution tables
-        for label, field, choices in [
-            ("Sexo Biológico", "sexo_biologico", Cadastro.SEXO_BIOLOGICO_CHOICES),
-            ("Etnia", "identidade_etnico_racial", Cadastro.ETNIA_CHOICES),
-            ("Grau de Instrução", "grau_instrucao", Cadastro.GRAU_INSTRUCAO_CHOICES),
-            ("Status Ocupacional", "status_ocupacional", Cadastro.STATUS_OCUPACIONAL_CHOICES),
-            ("Zona da Cidade", "zona_cidade", Cadastro.ZONA_CIDADE_CHOICES),
-        ]:
-            title_para = Paragraph(f"Distribuição por {label}", styles["SectionTitle"])
-            dist_data = [[header_para(label), header_para("Quantidade")]]
-            for value, display in choices:
-                count = cadastros.filter(**{field: value}).count()
+        def add_distribution(title, category_label, rows):
+            title_para = Paragraph(title, styles["SectionTitle"])
+            dist_data = [[header_para(category_label), header_para("Quantidade")]]
+            for display, count in rows:
                 dist_data.append([make_para(display), make_para(str(count))])
-            blank_count = cadastros.filter(**{field: ""}).count()
-            if blank_count:
-                dist_data.append([make_para("Não informado"), make_para(str(blank_count))])
             tbl = Table(dist_data, colWidths=[120 * mm, 40 * mm])
             tbl.setStyle(base_table_style)
             story.append(KeepTogether([title_para, tbl, Spacer(1, 4 * mm)]))
+
+        egresso_distributions = [
+            ("Pessoas Egressas por Faixa Etária", "Faixa etária", _age_distribution(cadastros)),
+            ("Pessoas Egressas por Gênero", "Gênero", _choice_distribution(
+                cadastros, "identidade_genero", Cadastro.IDENTIDADE_GENERO_CHOICES
+            )),
+            ("Pessoas Egressas por Deficiência", "Tipo de deficiência", _multiple_choice_distribution(
+                cadastros, "deficiencias", Cadastro.DEFICIENCIA_CHOICES
+            )),
+            ("Pessoas Egressas por Escolarização", "Grau de instrução", _choice_distribution(
+                cadastros, "grau_instrucao", Cadastro.GRAU_INSTRUCAO_CHOICES
+            )),
+            ("Pessoas Egressas por Série Final de Estudo", "Série final", _text_distribution(
+                cadastros, "serie_concluida"
+            )),
+            ("Pessoas Egressas por Tipo de Ocupação", "Tipo de ocupação", _choice_distribution(
+                cadastros, "tipo_ocupacao", Cadastro.TIPO_OCUPACAO_CHOICES
+            )),
+            ("Pessoas Egressas por Experiência de Trabalho", "Experiência", _choice_distribution(
+                cadastros, "experiencia_trabalho", Cadastro.EXPERIENCIA_TRABALHO_CHOICES
+            )),
+            ("Pessoas Egressas por Comorbidade", "Possui comorbidade", _choice_distribution(
+                cadastros, "possui_comorbidade", Cadastro.COMORBIDADE_CHOICES
+            )),
+            ("Pessoas Egressas por Uso de Substâncias Psicoativas", "Uso declarado", _choice_distribution(
+                cadastros, "uso_substancias_psicoativas", Cadastro.USO_SUBSTANCIAS_CHOICES
+            )),
+        ]
+        familiar_distributions = [
+            ("Familiares por Faixa Etária", "Faixa etária", _age_distribution(familiares_qs)),
+            ("Familiares por Gênero", "Gênero", _choice_distribution(
+                familiares_qs, "identidade_genero", Cadastro.IDENTIDADE_GENERO_CHOICES
+            )),
+            ("Familiares por Deficiência", "Tipo de deficiência", _multiple_choice_distribution(
+                familiares_qs, "deficiencias", Cadastro.DEFICIENCIA_CHOICES
+            )),
+            ("Familiares por Escolarização", "Grau de instrução", _choice_distribution(
+                familiares_qs, "grau_instrucao", Cadastro.GRAU_INSTRUCAO_CHOICES
+            )),
+            ("Familiares por Série Final de Estudo", "Série final", _text_distribution(
+                familiares_qs, "serie_concluida"
+            )),
+            ("Familiares por Tipo de Ocupação", "Tipo de ocupação", _choice_distribution(
+                familiares_qs, "tipo_ocupacao", Cadastro.TIPO_OCUPACAO_CHOICES
+            )),
+            ("Familiares por Experiência de Trabalho", "Experiência", _choice_distribution(
+                familiares_qs, "experiencia_trabalho", Cadastro.EXPERIENCIA_TRABALHO_CHOICES
+            )),
+            ("Familiares por Comorbidade", "Possui comorbidade", _choice_distribution(
+                familiares_qs, "possui_comorbidade", Cadastro.COMORBIDADE_CHOICES
+            )),
+            ("Familiares por Uso de Substâncias Psicoativas", "Uso declarado", _choice_distribution(
+                familiares_qs, "uso_substancias_psicoativas", Cadastro.USO_SUBSTANCIAS_CHOICES
+            )),
+        ]
+        for title, category_label, rows in egresso_distributions + familiar_distributions:
+            add_distribution(title, category_label, rows)
 
     # ── Cadastros ──
     if "cadastros" in secoes:
         cad_title = Paragraph(f"Cadastros / Egressos ({cadastros.count()})", styles["SectionTitle"])
         cad_data = [[
             header_para("Nome"), header_para("CPF"), header_para("Status"),
-            header_para("Nascimento"), header_para("Cidade/UF"),
-            header_para("Sexo"), header_para("Instrução"),
+            header_para("Faixa etária / Gênero"), header_para("Trabalho / Ocupação"),
+            header_para("Escolaridade / Série"), header_para("Saúde e substâncias"),
         ]]
         for c in cadastros:
             cad_data.append([
                 make_para(c.nome),
                 make_para(c.cpf_numero),
                 make_para(c.get_status_display()),
-                make_para(c.data_nascimento.strftime("%d/%m/%Y") if c.data_nascimento else ""),
-                make_para(f"{c.cidade}/{c.estado_uf}" if c.cidade else ""),
-                make_para(c.get_sexo_biologico_display() if c.sexo_biologico else ""),
-                make_para(c.get_grau_instrucao_display() if c.grau_instrucao else ""),
+                make_lines(
+                    f"Faixa: {_age_band_label(c.data_nascimento)}",
+                    f"Gênero: {c.get_identidade_genero_display()}" if c.identidade_genero else "",
+                ),
+                make_lines(
+                    f"Experiência: {c.get_experiencia_trabalho_display()}" if c.experiencia_trabalho else "",
+                    f"Ocupação: {c.get_tipo_ocupacao_display()}" if c.tipo_ocupacao else "",
+                ),
+                make_lines(
+                    c.get_grau_instrucao_display() if c.grau_instrucao else "",
+                    f"Série final: {c.serie_concluida}" if c.serie_concluida else "",
+                ),
+                make_lines(
+                    f"Deficiência: {_deficiencias_display(c)}" if c.deficiencias else "",
+                    f"Comorbidade: {c.get_possui_comorbidade_display()}" if c.possui_comorbidade else "",
+                    c.comorbidades,
+                    f"Substâncias: {c.get_uso_substancias_psicoativas_display()}" if c.uso_substancias_psicoativas else "",
+                    c.substancias_psicoativas,
+                ),
             ])
         if len(cad_data) == 1:
             cad_data.append([make_para("Nenhum registro encontrado")] + [make_para("")] * 6)
-        tbl = Table(cad_data, colWidths=[35 * mm, 22 * mm, 18 * mm, 22 * mm, 25 * mm, 22 * mm, 26 * mm])
+        tbl = Table(cad_data, colWidths=[28 * mm, 20 * mm, 16 * mm, 25 * mm, 27 * mm, 27 * mm, 27 * mm])
         tbl.setStyle(base_table_style)
         story.append(Spacer(1, 6 * mm))
         story.append(KeepTogether([cad_title, tbl]))
@@ -1291,20 +1491,37 @@ def relatorios_pdf_view(request):
         fam_title = Paragraph(f"Familiares ({familiares_qs.count()})", styles["SectionTitle"])
         fam_data = [[
             header_para("Nome"), header_para("Parentesco"),
-            header_para("CPF"), header_para("Telefone"),
-            header_para("Egresso Vinculado"),
+            header_para("Faixa / Gênero"), header_para("Trabalho / Ocupação"),
+            header_para("Escolaridade / Série"), header_para("Saúde e substâncias"),
         ]]
         for f in familiares_qs:
             fam_data.append([
                 make_para(f.nome),
                 make_para(f.parentesco),
-                make_para(f.cpf_numero),
-                make_para(f.telefone_numero),
-                make_para(f.cadastro.nome if f.cadastro else "Avulso"),
+                make_lines(
+                    f"Faixa: {_age_band_label(f.data_nascimento)}",
+                    f"Gênero: {f.get_identidade_genero_display()}" if f.identidade_genero else "",
+                ),
+                make_lines(
+                    f"Experiência: {f.get_experiencia_trabalho_display()}" if f.experiencia_trabalho else "",
+                    f"Tipo: {f.get_tipo_ocupacao_display()}" if f.tipo_ocupacao else "",
+                    f"Ocupação: {f.ocupacao}" if f.ocupacao else "",
+                ),
+                make_lines(
+                    f.get_grau_instrucao_display() if f.grau_instrucao else "",
+                    f"Série final: {f.serie_concluida}" if f.serie_concluida else "",
+                ),
+                make_lines(
+                    f"Deficiência: {_deficiencias_display(f)}" if f.deficiencias else "",
+                    f"Comorbidade: {f.get_possui_comorbidade_display()}" if f.possui_comorbidade else "",
+                    f.comorbidades,
+                    f"Substâncias: {f.get_uso_substancias_psicoativas_display()}" if f.uso_substancias_psicoativas else "",
+                    f.substancias_psicoativas,
+                ),
             ])
         if len(fam_data) == 1:
-            fam_data.append([make_para("Nenhum registro encontrado")] + [make_para("")] * 4)
-        tbl = Table(fam_data, colWidths=[38 * mm, 28 * mm, 25 * mm, 25 * mm, 38 * mm])
+            fam_data.append([make_para("Nenhum registro encontrado")] + [make_para("")] * 5)
+        tbl = Table(fam_data, colWidths=[28 * mm, 20 * mm, 27 * mm, 30 * mm, 28 * mm, 27 * mm])
         tbl.setStyle(base_table_style)
         story.append(Spacer(1, 6 * mm))
         story.append(KeepTogether([fam_title, tbl]))
@@ -1363,4 +1580,374 @@ def relatorios_pdf_view(request):
     response = HttpResponse(buf.read(), content_type="application/pdf")
     filename = f"relatorio_espi_{now.strftime('%Y%m%d_%H%M')}.pdf"
     response["Content-Disposition"] = f'inline; filename="{filename}"'
+    return response
+
+
+@login_required
+def relatorios_excel_view(request):
+    """Generate a formatted XLSX workbook using the same filters as the PDF."""
+    import io
+
+    from openpyxl import Workbook
+    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+    from openpyxl.worksheet.table import Table, TableStyleInfo
+    from openpyxl.utils import get_column_letter
+
+    params = request.GET
+    secoes = params.getlist("secao")
+    if not secoes:
+        secoes = ["cadastros", "familiares", "atendimentos", "agendamentos", "quantitativos"]
+
+    cadastros, familiares_qs, atendimentos_qs, agendamentos_qs = _report_querysets(params)
+    cadastros = list(cadastros)
+    familiares = list(familiares_qs)
+    atendimentos = list(atendimentos_qs)
+    agendamentos = list(agendamentos_qs)
+
+    workbook = Workbook()
+    workbook.remove(workbook.active)
+    workbook.properties.title = "Relatório do Sistema ESPI"
+    workbook.properties.subject = "Dados de pessoas egressas, familiares e atividades"
+    workbook.properties.creator = request.user.get_username()
+    workbook.properties.description = "Exportação gerada pelo ESPI com os filtros selecionados."
+
+    blue = "0B5ED7"
+    dark_blue = "073B88"
+    light_blue = "DCEBFF"
+    lighter_blue = "F3F7FC"
+    border_color = "B8CCE4"
+    white = "FFFFFF"
+    muted = "5D6B7A"
+    thin_border = Border(
+        left=Side(style="thin", color=border_color),
+        right=Side(style="thin", color=border_color),
+        top=Side(style="thin", color=border_color),
+        bottom=Side(style="thin", color=border_color),
+    )
+
+    choice_maps = {
+        "status_cadastro": dict(Cadastro.STATUS_CHOICES),
+        "sexo_biologico": dict(Cadastro.SEXO_BIOLOGICO_CHOICES),
+        "identidade_genero": dict(Cadastro.IDENTIDADE_GENERO_CHOICES),
+        "etnia": dict(Cadastro.ETNIA_CHOICES),
+        "grau_instrucao": dict(Cadastro.GRAU_INSTRUCAO_CHOICES),
+        "status_ocupacional": dict(Cadastro.STATUS_OCUPACIONAL_CHOICES),
+        "experiencia_trabalho": dict(Cadastro.EXPERIENCIA_TRABALHO_CHOICES),
+        "tipo_ocupacao": dict(Cadastro.TIPO_OCUPACAO_CHOICES),
+        "deficiencia": dict(Cadastro.DEFICIENCIA_CHOICES),
+        "possui_comorbidade": dict(Cadastro.COMORBIDADE_CHOICES),
+        "uso_substancias_psicoativas": dict(Cadastro.USO_SUBSTANCIAS_CHOICES),
+        "zona_cidade": dict(Cadastro.ZONA_CIDADE_CHOICES),
+    }
+    filter_names = {
+        "status_cadastro": "Status",
+        "data_inicio": "Data inicial",
+        "data_fim": "Data final",
+        "sexo_biologico": "Sexo biológico",
+        "identidade_genero": "Gênero",
+        "etnia": "Etnia",
+        "grau_instrucao": "Escolaridade",
+        "experiencia_trabalho": "Experiência de trabalho",
+        "tipo_ocupacao": "Tipo de ocupação",
+        "deficiencia": "Deficiência",
+        "possui_comorbidade": "Comorbidade",
+        "uso_substancias_psicoativas": "Uso de substâncias",
+        "status_ocupacional": "Status ocupacional",
+        "zona_cidade": "Zona",
+        "nome": "Nome",
+    }
+    active_filters = []
+    for key, label in filter_names.items():
+        value = params.get(key)
+        if value:
+            display = choice_maps.get(key, {}).get(value, value)
+            active_filters.append(f"{label}: {display}")
+    filters_text = "Filtros: " + (" | ".join(active_filters) if active_filters else "nenhum")
+
+    def safe_value(value):
+        if value is None:
+            return ""
+        if isinstance(value, str) and value.startswith(("=", "+", "-", "@")):
+            return "'" + value
+        return value
+
+    def add_sheet(name, title, headers, rows, tab_color=blue):
+        sheet = workbook.create_sheet(name)
+        sheet.sheet_properties.tabColor = tab_color
+        sheet.sheet_view.showGridLines = False
+        last_column = get_column_letter(len(headers))
+
+        sheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(headers))
+        title_cell = sheet.cell(1, 1, title)
+        title_cell.fill = PatternFill("solid", fgColor=dark_blue)
+        title_cell.font = Font(color=white, bold=True, size=16)
+        title_cell.alignment = Alignment(vertical="center")
+        sheet.row_dimensions[1].height = 30
+
+        sheet.merge_cells(start_row=2, start_column=1, end_row=2, end_column=len(headers))
+        info_cell = sheet.cell(
+            2,
+            1,
+            f"Gerado em {timezone.localtime(timezone.now()).strftime('%d/%m/%Y às %H:%M')} por "
+            f"{request.user.get_username()} — {filters_text}",
+        )
+        info_cell.font = Font(color=muted, italic=True, size=9)
+        info_cell.alignment = Alignment(wrap_text=True, vertical="center")
+        sheet.row_dimensions[2].height = 30
+
+        for column, header in enumerate(headers, 1):
+            cell = sheet.cell(3, column, header)
+            cell.fill = PatternFill("solid", fgColor=blue)
+            cell.font = Font(color=white, bold=True)
+            cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+            cell.border = thin_border
+        sheet.row_dimensions[3].height = 32
+
+        for row_index, row in enumerate(rows, 4):
+            for column, value in enumerate(row, 1):
+                cell = sheet.cell(row_index, column, safe_value(value))
+                cell.alignment = Alignment(vertical="top", wrap_text=True)
+                cell.border = thin_border
+                if row_index % 2 == 0:
+                    cell.fill = PatternFill("solid", fgColor=lighter_blue)
+                if hasattr(value, "year") and hasattr(value, "month") and hasattr(value, "day"):
+                    cell.number_format = "dd/mm/yyyy"
+            sheet.row_dimensions[row_index].height = 28
+
+        sheet.freeze_panes = "A4"
+        sheet.auto_filter.ref = f"A3:{last_column}{max(sheet.max_row, 3)}"
+        if rows:
+            table = Table(
+                displayName=f"TabelaESPI{len(workbook.worksheets)}",
+                ref=f"A3:{last_column}{sheet.max_row}",
+            )
+            table.tableStyleInfo = TableStyleInfo(
+                name="TableStyleMedium2",
+                showFirstColumn=False,
+                showLastColumn=False,
+                showRowStripes=True,
+                showColumnStripes=False,
+            )
+            sheet.add_table(table)
+        sheet.print_title_rows = "1:3"
+        sheet.page_setup.orientation = "landscape"
+        sheet.page_setup.fitToWidth = 1
+        sheet.page_setup.fitToHeight = 0
+        sheet.sheet_properties.pageSetUpPr.fitToPage = True
+        for column in range(1, len(headers) + 1):
+            values = [str(sheet.cell(row, column).value or "") for row in range(3, sheet.max_row + 1)]
+            width = min(max(max((len(value) for value in values), default=10) + 2, 12), 42)
+            sheet.column_dimensions[get_column_letter(column)].width = width
+        return sheet
+
+    if "quantitativos" in secoes:
+        summary_rows = [
+            ["Totais", "Cadastros / Egressos", "Total", len(cadastros)],
+            ["Totais", "Cadastros / Egressos", "Ativos", sum(c.status == "ativo" for c in cadastros)],
+            ["Totais", "Cadastros / Egressos", "Arquivados", sum(c.status == "arquivado" for c in cadastros)],
+            ["Totais", "Familiares", "Total", len(familiares)],
+            ["Totais", "Familiares", "Vinculados", sum(bool(f.cadastro_id) for f in familiares)],
+            ["Totais", "Familiares", "Avulsos", sum(not f.cadastro_id for f in familiares)],
+            ["Totais", "Atendimentos", "Total", len(atendimentos)],
+            ["Totais", "Agendamentos", "Total", len(agendamentos)],
+        ]
+        distributions = [
+            ("Egressos", "Faixa etária", _age_distribution(cadastros)),
+            ("Egressos", "Gênero", _choice_distribution(
+                Cadastro.objects.filter(pk__in=[c.pk for c in cadastros]),
+                "identidade_genero",
+                Cadastro.IDENTIDADE_GENERO_CHOICES,
+            )),
+            ("Egressos", "Deficiência", _multiple_choice_distribution(
+                cadastros, "deficiencias", Cadastro.DEFICIENCIA_CHOICES
+            )),
+            ("Egressos", "Escolaridade", _choice_distribution(
+                Cadastro.objects.filter(pk__in=[c.pk for c in cadastros]),
+                "grau_instrucao",
+                Cadastro.GRAU_INSTRUCAO_CHOICES,
+            )),
+            ("Egressos", "Série final", _text_distribution(cadastros, "serie_concluida")),
+            ("Egressos", "Tipo de ocupação", _choice_distribution(
+                Cadastro.objects.filter(pk__in=[c.pk for c in cadastros]),
+                "tipo_ocupacao",
+                Cadastro.TIPO_OCUPACAO_CHOICES,
+            )),
+            ("Egressos", "Experiência de trabalho", _choice_distribution(
+                Cadastro.objects.filter(pk__in=[c.pk for c in cadastros]),
+                "experiencia_trabalho",
+                Cadastro.EXPERIENCIA_TRABALHO_CHOICES,
+            )),
+            ("Egressos", "Comorbidade", _choice_distribution(
+                Cadastro.objects.filter(pk__in=[c.pk for c in cadastros]),
+                "possui_comorbidade",
+                Cadastro.COMORBIDADE_CHOICES,
+            )),
+            ("Egressos", "Uso de substâncias", _choice_distribution(
+                Cadastro.objects.filter(pk__in=[c.pk for c in cadastros]),
+                "uso_substancias_psicoativas",
+                Cadastro.USO_SUBSTANCIAS_CHOICES,
+            )),
+            ("Familiares", "Faixa etária", _age_distribution(familiares)),
+            ("Familiares", "Gênero", _choice_distribution(
+                Familiar.objects.filter(pk__in=[f.pk for f in familiares]),
+                "identidade_genero",
+                Cadastro.IDENTIDADE_GENERO_CHOICES,
+            )),
+            ("Familiares", "Deficiência", _multiple_choice_distribution(
+                familiares, "deficiencias", Cadastro.DEFICIENCIA_CHOICES
+            )),
+            ("Familiares", "Escolaridade", _choice_distribution(
+                Familiar.objects.filter(pk__in=[f.pk for f in familiares]),
+                "grau_instrucao",
+                Cadastro.GRAU_INSTRUCAO_CHOICES,
+            )),
+            ("Familiares", "Série final", _text_distribution(familiares, "serie_concluida")),
+            ("Familiares", "Tipo de ocupação", _choice_distribution(
+                Familiar.objects.filter(pk__in=[f.pk for f in familiares]),
+                "tipo_ocupacao",
+                Cadastro.TIPO_OCUPACAO_CHOICES,
+            )),
+            ("Familiares", "Experiência de trabalho", _choice_distribution(
+                Familiar.objects.filter(pk__in=[f.pk for f in familiares]),
+                "experiencia_trabalho",
+                Cadastro.EXPERIENCIA_TRABALHO_CHOICES,
+            )),
+            ("Familiares", "Comorbidade", _choice_distribution(
+                Familiar.objects.filter(pk__in=[f.pk for f in familiares]),
+                "possui_comorbidade",
+                Cadastro.COMORBIDADE_CHOICES,
+            )),
+            ("Familiares", "Uso de substâncias", _choice_distribution(
+                Familiar.objects.filter(pk__in=[f.pk for f in familiares]),
+                "uso_substancias_psicoativas",
+                Cadastro.USO_SUBSTANCIAS_CHOICES,
+            )),
+        ]
+        for group, indicator, rows in distributions:
+            summary_rows.extend([group, indicator, category, quantity] for category, quantity in rows)
+        summary_sheet = add_sheet(
+            "Resumo",
+            "ESPI — Resumo quantitativo",
+            ["Grupo", "Indicador", "Categoria", "Quantidade"],
+            summary_rows,
+            "70AD47",
+        )
+        summary_sheet.column_dimensions["A"].width = 18
+        summary_sheet.column_dimensions["B"].width = 28
+        summary_sheet.column_dimensions["C"].width = 38
+        summary_sheet.column_dimensions["D"].width = 14
+
+    if "cadastros" in secoes:
+        headers = [
+            "ID", "Nome", "Nome social", "CPF", "RG", "Data do cadastro", "Status",
+            "Data de nascimento", "Idade", "Faixa etária", "Sexo biológico",
+            "Identidade de gênero", "Identidade étnico-racial", "Experiência de trabalho",
+            "Tipo de ocupação", "Status ocupacional", "Grau de instrução", "Série final",
+            "Deficiências", "Possui comorbidade", "Comorbidades/problemas de saúde",
+            "Uso de substâncias psicoativas", "Substâncias informadas", "Cidade", "UF",
+            "Bairro", "Endereço", "Telefone", "E-mail",
+        ]
+        rows = [
+            [
+                c.pk, c.nome, c.nome_social, c.cpf_numero, c.rg_numero, c.data_cadastro,
+                c.get_status_display(), c.data_nascimento, _age_on(c.data_nascimento),
+                _age_band_label(c.data_nascimento),
+                c.get_sexo_biologico_display() if c.sexo_biologico else "",
+                c.get_identidade_genero_display() if c.identidade_genero else "",
+                c.get_identidade_etnico_racial_display() if c.identidade_etnico_racial else "",
+                c.get_experiencia_trabalho_display() if c.experiencia_trabalho else "",
+                c.get_tipo_ocupacao_display() if c.tipo_ocupacao else "",
+                c.get_status_ocupacional_display() if c.status_ocupacional else "",
+                c.get_grau_instrucao_display() if c.grau_instrucao else "",
+                c.serie_concluida, c.get_deficiencias_display(),
+                c.get_possui_comorbidade_display() if c.possui_comorbidade else "",
+                c.comorbidades,
+                c.get_uso_substancias_psicoativas_display() if c.uso_substancias_psicoativas else "",
+                c.substancias_psicoativas, c.cidade, c.estado_uf, c.bairro, c.endereco,
+                c.telefone_numero, c.email_contato,
+            ]
+            for c in cadastros
+        ]
+        add_sheet("Egressos", f"ESPI — Cadastros / Egressos ({len(rows)})", headers, rows)
+
+    if "familiares" in secoes:
+        headers = [
+            "ID", "Nome", "Nome social", "CPF", "Data do cadastro", "Egresso vinculado",
+            "Interno de referência", "Parentesco", "Data de nascimento", "Idade",
+            "Faixa etária", "Sexo biológico", "Identidade de gênero",
+            "Identidade étnico-racial", "Experiência de trabalho", "Ocupação/profissão",
+            "Tipo de ocupação", "Grau de escolaridade", "Série final", "Deficiências",
+            "Possui comorbidade", "Comorbidades/problemas de saúde",
+            "Uso de substâncias psicoativas", "Substâncias informadas", "Bairro",
+            "Telefone", "Contato", "E-mail",
+        ]
+        rows = [
+            [
+                f.pk, f.nome, f.nome_social, f.cpf_numero, f.data_criacao.date(),
+                f.cadastro.nome if f.cadastro else "", f.nome_interno_referencia,
+                f.parentesco, f.data_nascimento, _age_on(f.data_nascimento),
+                _age_band_label(f.data_nascimento),
+                f.get_sexo_biologico_display() if f.sexo_biologico else "",
+                f.get_identidade_genero_display() if f.identidade_genero else "",
+                f.get_identidade_etnico_racial_display() if f.identidade_etnico_racial else "",
+                f.get_experiencia_trabalho_display() if f.experiencia_trabalho else "",
+                f.ocupacao, f.get_tipo_ocupacao_display() if f.tipo_ocupacao else "",
+                f.get_grau_instrucao_display() if f.grau_instrucao else "",
+                f.serie_concluida, f.get_deficiencias_display(),
+                f.get_possui_comorbidade_display() if f.possui_comorbidade else "",
+                f.comorbidades,
+                f.get_uso_substancias_psicoativas_display() if f.uso_substancias_psicoativas else "",
+                f.substancias_psicoativas, f.bairro, f.telefone_numero,
+                f.telefone_contato, f.email_contato,
+            ]
+            for f in familiares
+        ]
+        add_sheet("Familiares", f"ESPI — Familiares ({len(rows)})", headers, rows, "8E44AD")
+
+    if "atendimentos" in secoes:
+        headers = [
+            "ID", "Data", "Pessoa atendida", "Perfil", "Tipo", "Local", "Motivo",
+            "Objetivo", "Profissional responsável", "Outros participantes",
+            "Descrição", "Status",
+        ]
+        rows = [
+            [
+                a.pk, a.data_atendimento, a.nome_pessoa_atendida,
+                a.get_perfil_pessoa_atendida_display() if a.perfil_pessoa_atendida else "",
+                a.get_tipo_atendimento_display() if a.tipo_atendimento else "",
+                a.get_local_atendimento_display() if a.local_atendimento else "",
+                a.get_motivo_procura_display() if a.motivo_procura else "",
+                a.objetivo_atendimento, a.profissional_responsavel,
+                a.outras_pessoas_participantes, a.descricao_atendimento,
+                a.get_status_display() if a.status else "",
+            ]
+            for a in atendimentos
+        ]
+        add_sheet("Atendimentos", f"ESPI — Atendimentos ({len(rows)})", headers, rows, "00A86B")
+
+    if "agendamentos" in secoes:
+        headers = ["ID", "Data", "Horário", "Nome", "Tipo", "Observações"]
+        rows = [
+            [
+                a.pk, a.data_agendamento, a.horario_atendimento, a.nome_atendido,
+                a.get_tipo_agendamento_display() if a.tipo_agendamento else "",
+                a.observacoes,
+            ]
+            for a in agendamentos
+        ]
+        add_sheet("Agendamentos", f"ESPI — Agendamentos ({len(rows)})", headers, rows, "F28C28")
+
+    if not workbook.sheetnames:
+        add_sheet("Relatório", "ESPI — Relatório", ["Informação"], [["Nenhuma seção selecionada"]])
+
+    output = io.BytesIO()
+    workbook.save(output)
+    output.seek(0)
+    now = timezone.localtime(timezone.now())
+    response = HttpResponse(
+        output.read(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    filename = f"relatorio_espi_{now.strftime('%Y%m%d_%H%M')}.xlsx"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response

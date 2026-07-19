@@ -10,8 +10,23 @@ import re
 from .models import Agendamento, Atendimento, Cadastro, Familiar, Lembrete, UserProfile
 
 
+def _set_empty_choice_label(field, label="Selecione uma opção"):
+    """Replace Django's dashed blank option with a user-friendly prompt."""
+    choices = list(field.choices)
+    if choices and choices[0][0] in ("", None):
+        choices[0] = ("", label)
+        field.choices = choices
+
+
 class CadastroForm(forms.ModelForm):
     """Form for creating a Cadastro."""
+
+    deficiencias = forms.MultipleChoiceField(
+        required=False,
+        choices=Cadastro.DEFICIENCIA_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        label="Tipos de deficiência",
+    )
 
     def __init__(self, *args, **kwargs):
         """Configure widget placeholders and empty labels."""
@@ -24,15 +39,23 @@ class CadastroForm(forms.ModelForm):
             "identidade_etnico_racial",
             "estado_civil",
             "status_ocupacional",
+            "experiencia_trabalho",
+            "tipo_ocupacao",
             "grau_instrucao",
             "fez_ensino_superior",
             "estuda_atualmente",
+            "possui_comorbidade",
+            "uso_substancias_psicoativas",
             "procedencia",
             "encaminhamento",
             "zona_cidade",
         ]
         for name in select_fields:
-            self.fields[name].empty_label = "Selecione uma opção"
+            _set_empty_choice_label(self.fields[name])
+        if self.instance and self.instance.deficiencias:
+            self.fields["deficiencias"].initial = [
+                item.strip() for item in self.instance.deficiencias.split(",") if item.strip()
+            ]
 
     class Meta:
         model = Cadastro
@@ -55,6 +78,8 @@ class CadastroForm(forms.ModelForm):
             "nome_mae",
             "nome_pai",
             "status_ocupacional",
+            "experiencia_trabalho",
+            "tipo_ocupacao",
             "grau_instrucao",
             "serie_concluida",
             "fez_ensino_superior",
@@ -62,6 +87,11 @@ class CadastroForm(forms.ModelForm):
             "experiencia_escolar",
             "estuda_atualmente",
             "horario_turno_estudo",
+            "deficiencias",
+            "possui_comorbidade",
+            "comorbidades",
+            "uso_substancias_psicoativas",
+            "substancias_psicoativas",
             # Documentação apresentada
             "doc_certidao_nascimento",
             "doc_rg",
@@ -115,6 +145,11 @@ class CadastroForm(forms.ModelForm):
             "motivo_procura": forms.Textarea(attrs={"rows": 3}),
             "encaminhamento_detalhe": forms.Textarea(attrs={"rows": 3}),
             "experiencia_escolar": forms.Textarea(attrs={"rows": 3}),
+            "comorbidades": forms.Textarea(attrs={"rows": 2}),
+            "substancias_psicoativas": forms.Textarea(attrs={"rows": 2}),
+            "serie_concluida": forms.TextInput(
+                attrs={"placeholder": "Ex.: 3ª série, 5ª série ou 9º ano"}
+            ),
             "cnh_categoria": forms.RadioSelect,
             "cpf_numero": forms.TextInput(attrs={"maxlength": "14"}),
             "rg_numero": forms.TextInput(attrs={"maxlength": "12"}),
@@ -132,6 +167,15 @@ class CadastroForm(forms.ModelForm):
             "procedencia_outro": "Descreva a procedência quando selecionar 'Outro'.",
             "orientado_escritorio_social": "Foi orientado(a) sobre o Escritório Social na Unidade Prisional?",
         }
+        labels = {
+            "experiencia_trabalho": "Experiência de trabalho",
+            "tipo_ocupacao": "Tipo de ocupação atual",
+            "serie_concluida": "Série final de estudo",
+            "possui_comorbidade": "Possui comorbidade/problema de saúde?",
+            "comorbidades": "Comorbidades/problemas de saúde",
+            "uso_substancias_psicoativas": "Fez ou faz uso de substâncias psicoativas?",
+            "substancias_psicoativas": "Substâncias informadas",
+        }
 
     def clean(self):
         """Custom validations for conditional fields."""
@@ -142,7 +186,30 @@ class CadastroForm(forms.ModelForm):
         if procedencia == "outro" and not procedencia_outro:
             self.add_error("procedencia_outro", "Informe a procedência.")
 
+        if cleaned_data.get("possui_comorbidade") != "sim":
+            cleaned_data["comorbidades"] = ""
+        if cleaned_data.get("uso_substancias_psicoativas") not in {
+            "uso_anterior", "uso_atual", "uso_anterior_atual",
+        }:
+            cleaned_data["substancias_psicoativas"] = ""
+        if cleaned_data.get("fez_ensino_superior") != "sim":
+            cleaned_data["curso_superior"] = ""
+        if cleaned_data.get("estuda_atualmente") != "sim":
+            cleaned_data["horario_turno_estudo"] = ""
+        if cleaned_data.get("religiao") == "nao_possui":
+            cleaned_data["religiao_desde_quando"] = ""
+        if not cleaned_data.get("encaminhamento"):
+            cleaned_data["encaminhamento_detalhe"] = ""
+
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.deficiencias = ", ".join(self.cleaned_data.get("deficiencias", []))
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
 
 
 class AtendimentoForm(forms.ModelForm):
@@ -157,7 +224,7 @@ class AtendimentoForm(forms.ModelForm):
             "perfil_pessoa_atendida",
             "motivo_procura",
         ]:
-            self.fields[name].empty_label = "Escolha uma opção"
+            _set_empty_choice_label(self.fields[name], "Escolha uma opção")
 
         if user and not self.instance.pk:
             self.fields["profissional_responsavel"].initial = user.get_username()
@@ -206,8 +273,8 @@ class AgendamentoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         """Configure widget placeholders and empty labels."""
         super().__init__(*args, **kwargs)
-        self.fields["tipo_agendamento"].empty_label = "Selecione uma opção"
-        self.fields["horario_atendimento"].empty_label = "Selecione uma opção"
+        _set_empty_choice_label(self.fields["tipo_agendamento"])
+        _set_empty_choice_label(self.fields["horario_atendimento"])
 
 
 class LembreteForm(forms.ModelForm):
@@ -262,6 +329,12 @@ class FamiliarForm(forms.ModelForm):
         choices=DOCUMENTOS_AUSENTES_CHOICES,
         widget=forms.CheckboxSelectMultiple,
     )
+    deficiencias = forms.MultipleChoiceField(
+        required=False,
+        choices=Cadastro.DEFICIENCIA_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        label="Tipos de deficiência",
+    )
 
     class Meta:
         model = Familiar
@@ -270,6 +343,7 @@ class FamiliarForm(forms.ModelForm):
             "nome_social",
             "data_nascimento",
             "sexo_biologico",
+            "identidade_genero",
             "identidade_etnico_racial",
             "pessoa_transexual",
             "cpf_numero",
@@ -277,6 +351,16 @@ class FamiliarForm(forms.ModelForm):
             "documentos_possui",
             "documentos_ausentes",
             "parentesco",
+            "experiencia_trabalho",
+            "ocupacao",
+            "tipo_ocupacao",
+            "grau_instrucao",
+            "serie_concluida",
+            "deficiencias",
+            "possui_comorbidade",
+            "comorbidades",
+            "uso_substancias_psicoativas",
+            "substancias_psicoativas",
             "perfil_referencia_egresso",
             "perfil_referencia_pre_egresso",
             "nome_interno_referencia",
@@ -297,6 +381,23 @@ class FamiliarForm(forms.ModelForm):
                 }
             ),
             "nis_numero": forms.TextInput(attrs={"maxlength": "11"}),
+            "serie_concluida": forms.TextInput(
+                attrs={"placeholder": "Ex.: 3ª série, 5ª série ou 9º ano"}
+            ),
+            "comorbidades": forms.Textarea(attrs={"rows": 2}),
+            "substancias_psicoativas": forms.Textarea(attrs={"rows": 2}),
+        }
+        labels = {
+            "identidade_genero": "Identidade de gênero",
+            "experiencia_trabalho": "Experiência de trabalho",
+            "ocupacao": "Ocupação/profissão do familiar",
+            "tipo_ocupacao": "Tipo de ocupação atual",
+            "grau_instrucao": "Grau de escolaridade",
+            "serie_concluida": "Série final de estudo",
+            "possui_comorbidade": "Possui comorbidade/problema de saúde?",
+            "comorbidades": "Comorbidades/problemas de saúde",
+            "uso_substancias_psicoativas": "Fez ou faz uso de substâncias psicoativas?",
+            "substancias_psicoativas": "Substâncias informadas",
         }
 
     def __init__(self, *args, **kwargs):
@@ -313,6 +414,22 @@ class FamiliarForm(forms.ModelForm):
                 for item in self.instance.documentos_ausentes.split(",")
                 if item.strip()
             ]
+        if self.instance and self.instance.deficiencias:
+            self.fields["deficiencias"].initial = [
+                item.strip() for item in self.instance.deficiencias.split(",") if item.strip()
+            ]
+
+        for name in [
+            "sexo_biologico",
+            "identidade_genero",
+            "identidade_etnico_racial",
+            "experiencia_trabalho",
+            "tipo_ocupacao",
+            "grau_instrucao",
+            "possui_comorbidade",
+            "uso_substancias_psicoativas",
+        ]:
+            _set_empty_choice_label(self.fields[name])
 
         is_avulso = not getattr(self.instance, "cadastro_id", None)
         self.fields["nome_interno_referencia"].required = is_avulso
@@ -347,12 +464,19 @@ class FamiliarForm(forms.ModelForm):
                 self.add_error("perfil_referencia_pre_egresso", message)
 
         cleaned_data["nome_interno_referencia"] = nome_interno_referencia
+        if cleaned_data.get("possui_comorbidade") != "sim":
+            cleaned_data["comorbidades"] = ""
+        if cleaned_data.get("uso_substancias_psicoativas") not in {
+            "uso_anterior", "uso_atual", "uso_anterior_atual",
+        }:
+            cleaned_data["substancias_psicoativas"] = ""
         return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)
         instance.documentos_possui = ", ".join(self.cleaned_data.get("documentos_possui", []))
         instance.documentos_ausentes = ", ".join(self.cleaned_data.get("documentos_ausentes", []))
+        instance.deficiencias = ", ".join(self.cleaned_data.get("deficiencias", []))
         if commit:
             instance.save()
         return instance

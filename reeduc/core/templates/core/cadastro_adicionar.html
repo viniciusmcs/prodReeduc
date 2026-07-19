@@ -7,14 +7,9 @@
 {% block content %}
                 <h1>Criar Novo Cadastro - Identificação</h1>
 
-                <form method="post" class="form">
+                <form method="post" enctype="multipart/form-data" class="form">
                     {% csrf_token %}
-                    {% if form.errors %}
-                    <div class="form-errors">
-                        <strong>Verifique os campos abaixo:</strong>
-                        {{ form.non_field_errors }}
-                    </div>
-                    {% endif %}
+                    {% include "core/_form_errors.html" %}
 
                     <section class="form-section">
                         <h2>Dados pessoais</h2>
@@ -42,6 +37,10 @@
                             <div class="field switch">
                                 <label for="id_pessoa_transexual">Pessoa transexual/travesti <span class="tooltip" title="{{ form.pessoa_transexual.help_text }}">i</span></label>
                                 {{ form.pessoa_transexual }}
+                            </div>
+                            <div class="field">
+                                <label for="id_foto">Foto</label>
+                                {{ form.foto }}
                             </div>
                         </div>
                     </section>
@@ -94,6 +93,40 @@
                             <div class="field">
                                 <label for="id_status_ocupacional">Status Ocupacional</label>
                                 {{ form.status_ocupacional }}
+                            </div>
+                            <div class="field">
+                                <label for="id_experiencia_trabalho">Experiência de trabalho</label>
+                                {{ form.experiencia_trabalho }}
+                            </div>
+                            <div class="field">
+                                <label for="id_tipo_ocupacao">Tipo de ocupação atual</label>
+                                {{ form.tipo_ocupacao }}
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2>Saúde e uso de substâncias</h2>
+                        <div class="grid">
+                            <div class="field">
+                                <label>Tipos de deficiência</label>
+                                {{ form.deficiencias }}
+                            </div>
+                            <div class="field">
+                                <label for="id_possui_comorbidade">Possui comorbidade/problema de saúde?</label>
+                                {{ form.possui_comorbidade }}
+                            </div>
+                            <div class="field">
+                                <label for="id_comorbidades">Qual(is) comorbidade(s)/problema(s) de saúde?</label>
+                                {{ form.comorbidades }}
+                            </div>
+                            <div class="field">
+                                <label for="id_uso_substancias_psicoativas">Fez ou faz uso de substâncias psicoativas?</label>
+                                {{ form.uso_substancias_psicoativas }}
+                            </div>
+                            <div class="field">
+                                <label for="id_substancias_psicoativas">Qual(is) substância(s)?</label>
+                                {{ form.substancias_psicoativas }}
                             </div>
                         </div>
                     </section>
@@ -276,10 +309,10 @@
                                 {{ form.email_contato }}
                             </div>
                         </div>
-                        <button type="button" class="ghost-button">Adicionar telefone</button>
                     </section>
 
                     <div class="actions">
+                        <a class="ghost-button" href="/cadastro">Cancelar</a>
                         <button type="submit" class="primary-button">Salvar cadastro</button>
                     </div>
                 </form>
